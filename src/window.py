@@ -19,6 +19,9 @@ class CheckersApp(tk.Canvas):
         master.resizable(0, 0)
         master.minsize(self.WINDOW_WIDTH, self.WINDOW_HEIGHT)
 
+        self.start_player = tk.StringVar()
+        self.max_depth = tk.IntVar()
+
         self.views = {
             ViewType.START: StartView(app_ref=self),
             ViewType.GAME: BoardView(app_ref=self)

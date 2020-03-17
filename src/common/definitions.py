@@ -1,9 +1,9 @@
 from enum import Enum
 
-
 # Define colors
-light_orange = '#ed994c'
 orange = '#e9872e'
+light_orange = '#ed994c'
+light_blue = '#8aace3'
 dark_blue = '#1a3f7b'
 grey = '#a3a3a3'
 black = 'black'
@@ -13,7 +13,13 @@ light_red = '#f77e7e'
 
 EMPTY = 0
 
-PLAYERS = ['Computer', 'Me']
+
+class PlayerType(Enum):
+    COMPUTER = 0
+    USER = 1
+
+
+PLAYERS = {'Computer': PlayerType.COMPUTER, 'Me': PlayerType.USER}
 
 
 class ViewType(Enum):
@@ -21,7 +27,7 @@ class ViewType(Enum):
     GAME = 1
 
 
-# Colors of checkcer piece
+# Colors of checker piece
 class CheckerColor(Enum):
-    WHITE = white
-    RED = red
+    ORANGE = orange
+    BLUE = dark_blue
