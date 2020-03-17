@@ -7,8 +7,9 @@ import tkinter as tk
 class CheckersApp(tk.Canvas):
     WINDOW_HEIGHT = 600
     WINDOW_WIDTH = 600
-    TITLE = 'Gra w warcaby'
+    TITLE = 'Checkers game'
     BG_COLOR = dark_blue
+    ICON_PATH = '../assets/checkers.ico'
 
     def __init__(self, master):
         super().__init__(master, bg=self.BG_COLOR)
@@ -18,6 +19,7 @@ class CheckersApp(tk.Canvas):
         master.title(self.TITLE)
         master.resizable(0, 0)
         master.minsize(self.WINDOW_WIDTH, self.WINDOW_HEIGHT)
+        master.iconbitmap(self.ICON_PATH)
 
         self.start_player = tk.StringVar()
         self.max_depth = tk.IntVar()
