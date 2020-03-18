@@ -10,6 +10,8 @@ black = 'black'
 white = 'white'
 red = 'red'
 light_red = '#f77e7e'
+cyan = 'cyan'
+beige = '#ffe6c9'
 
 EMPTY = 0
 

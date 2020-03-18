@@ -1,5 +1,6 @@
 from src.models.checker import Checker
 from src.models.player import Player
+from src.models.tile import Tile
 from src.views.view import View
 from src.views.widgets import *
 
@@ -16,8 +17,8 @@ class BoardView(View):
         self.max_depth_label = Label(self, '', 12)
         self.board = Board(self)
         self.players = {
-            PlayerType.COMPUTER: Player(self, PlayerType.COMPUTER),
-            PlayerType.USER: Player(self, PlayerType.USER)
+            PlayerType.COMPUTER: Player(self, PlayerType.COMPUTER, self.board.blue_checkers),
+            PlayerType.USER: Player(self, PlayerType.USER, self.board.orange_checkers)
         }
 
     def display_view(self):
@@ -28,6 +29,9 @@ class BoardView(View):
         self.grid_columnconfigure(4, weight=1)
         self.create_widgets()
 
+        self.max_depth_label['text'] = self.get_max_depth_label()
+        self.set_new_current_player(self.get_start_player_type())
+
     def create_widgets(self):
         self.current_player_label.grid(column=0, row=0)
         self.current_player_checker_label.grid(column=3, row=0)
@@ -36,9 +40,6 @@ class BoardView(View):
         self.players[PlayerType.USER].get_scoreboard().grid(column=3, row=5)
         self.players[PlayerType.COMPUTER].get_scoreboard().grid(column=3, row=6)
         self.max_depth_label.grid(column=3, row=16)
-
-        self.max_depth_label['text'] = self.get_max_depth_label()
-        self.set_new_current_player(self.get_start_player_type())
 
     def get_current_player(self):
         return self.players[self.current_player_type]
@@ -69,63 +70,108 @@ class Board(tk.Canvas):
     ROWS = 8
     COLUMNS = 8
     TILE_BORDER = .75
-    CHECKER_BORDER = TILE_BORDER * 6
 
     tile_width = WIDTH // COLUMNS
     tile_height = HEIGHT // ROWS
 
     orange_checkers = []
     blue_checkers = []
+    board = []
+    highlighted_tiles = []
+    current_checker = None
 
     def __init__(self, parent):
         super().__init__(parent, width=self.WIDTH + self.TILE_BORDER, height=self.HEIGHT + self.TILE_BORDER,
                          background=light_orange, bd=0, highlightthickness=0, relief='ridge')
+        self.parent = parent
         self.grid_rowconfigure(0, weight=1)
         self.grid_columnconfigure(0, weight=1)
-        self.board = self.create_empty_board()
         self.create_board()
 
     def create_board(self):
         self.create_tiles()
         self.create_checkers()
-
-    def create_empty_board(self):
-        board = [[EMPTY for column in range(self.COLUMNS)] for row in range(self.ROWS)]
-        return board
+        self.get_tile_object_from_id(1)
 
     def create_tiles(self):
-        for i in range(0, self.COLUMNS):
-            x1 = (i * self.tile_width) + self.TILE_BORDER
-            x2 = ((i + 1) * self.tile_width) - self.TILE_BORDER
-            for j in range(0, self.ROWS):
-                y1 = (j * self.tile_height) + self.TILE_BORDER
-                y2 = ((j + 1) * self.tile_height) - self.TILE_BORDER
-                fill = white if (i + j) % 2 == 0 else light_blue
-                id_rect = self.create_rectangle(x1, y1, x2, y2, fill=fill)
-                self.board.append((id_rect, j, i, x1, x2, y1, y2))
+        for i in range(0, self.ROWS):
+            for j in range(0, self.COLUMNS):
+                new_tile = Tile(self, j, i, self.tile_width, self.tile_height, self.TILE_BORDER)
+                self.board.append(new_tile)
 
     def create_checkers(self):
         for i in range(0, self.ROWS):
             if i == 3 or i == 4:
                 continue
-            y1 = (i * self.tile_width) + self.CHECKER_BORDER
-            y2 = ((i + 1) * self.tile_width) - self.CHECKER_BORDER
-            checker_color = CheckerColor.BLUE if i < 3 else CheckerColor.ORANGE
             for j in range(0, self.COLUMNS):
                 if (i + j) % 2 == 1:
-                    x1 = (j * self.tile_height) + self.CHECKER_BORDER
-                    x2 = ((j + 1) * self.tile_height) - self.CHECKER_BORDER
-                    id_tag = self.create_oval(x1, y1, x2, y2, fill=checker_color.value)
-                    new_checker = Checker(i, j, checker_color, id_tag)
-                    if checker_color == CheckerColor.BLUE:
-                        self.blue_checkers.append((id_tag, new_checker))
-                    elif checker_color == CheckerColor.ORANGE:
-                        self.tag_bind(id_tag, "<ButtonPress-1>", self.on_checker_click)
-                        self.orange_checkers.append((id_tag, new_checker))
+                    new_checker = Checker(self, i, j, self.tile_width, self.tile_height)
+                    if new_checker.color == CheckerColor.BLUE:
+                        self.blue_checkers.append(new_checker)
+                    elif new_checker.color == CheckerColor.ORANGE:
+                        self.tag_bind(new_checker.id_tag, "<ButtonPress-1>", self.on_checker_click)
+                        self.orange_checkers.append(new_checker)
 
     def on_checker_click(self, event):
+        if self.parent.current_player_type == PlayerType.COMPUTER:
+            print('It\'s computer\'s turn!')
+            return
+
         x = self.canvasx(event.x)
         y = self.canvasy(event.y)
-        id_value = self.find_closest(x, y)[0]
-        print(x, y, id_value)
-        # TODO
+        checker_id = self.find_closest(x, y)[0]
+        self.clear_highlighted_tiles()
+        self.show_available_moves(checker_id)
+
+    def on_highlighted_tile_click(self, event):
+        x = self.canvasx(event.x)
+        y = self.canvasy(event.y)
+        tile_id = self.find_closest(x, y)[0]
+        tile: Tile = self.get_tile_object_from_id(tile_id)
+        if not tile:
+            print('Tile of id {} not found'.format(tile_id))
+            return
+
+        self.current_checker.update_location(tile.row, tile.column)
+        self.clear_highlighted_tiles()
+        self.current_checker = None
+
+    def show_available_moves(self, checker_id):
+        checker: Checker = self.get_checker_object_from_id(checker_id)
+        if not checker:
+            print('Checker of id {} not found'.format(checker_id))
+            return
+        self.current_checker = checker
+
+        # fixme: atrapa poruszania pionkiem
+        # todo: przeliczenie możliwych ruchów, skoków, wymuszeń skoków, uwzględniając damkę
+        tile: Tile = self.get_tile_object_from_row_col(checker.row - 1, checker.column + 1)
+        if not tile:
+            print('Tile ({}, {}) not found'.format(checker.row - 1, checker.column + 1))
+            return
+
+        self.highlighted_tiles.append(tile)
+        tile.highlight()
+
+    def clear_highlighted_tiles(self):
+        for tile in self.highlighted_tiles:
+            tile.unhighlight()
+        self.highlighted_tiles.clear()
+
+    def get_tile_object_from_id(self, tile_id):
+        searched_tile = list(filter(lambda tile: (tile.id_val == tile_id), self.board))
+        return searched_tile[0] if len(searched_tile) else None
+
+    def get_tile_object_from_row_col(self, row, column):
+        searched_tile = list(filter(lambda tile: (tile.row == row and tile.column == column), self.board))
+        return searched_tile[0] if len(searched_tile) else None
+
+    def get_checker_object_from_id(self, checker_id):
+        checkers = [*self.blue_checkers, *self.orange_checkers]
+        searched_checker = list(filter(lambda checker: (checker.id_tag == checker_id), checkers))
+        return searched_checker[0] if len(searched_checker) else None
+
+    def get_checker_object_from_row_col(self, row, column):
+        checkers = [*self.blue_checkers, *self.orange_checkers]
+        searched_checker = list(filter(lambda checker: (checker.row == row and checker.column == column), checkers))
+        return searched_checker[0] if len(searched_checker) else None
