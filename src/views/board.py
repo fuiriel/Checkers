@@ -135,6 +135,7 @@ class Board(tk.Canvas):
         self.current_checker.update_location(tile.row, tile.column)
         self.clear_highlighted_tiles()
         self.current_checker = None
+        self.parent.switch_current_player()
 
     def show_available_moves(self, checker_id):
         checker: Checker = self.get_checker_object_from_id(checker_id)
