@@ -58,6 +58,10 @@ class BoardView(View):
     def update_current_player_checker_label(self):
         self.current_player_checker_label['background'] = self.get_current_player().color.value
 
+    def switch_current_player(self):
+        new_player_type = PlayerType((self.current_player_type.value + 1) % 2)
+        self.set_new_current_player(new_player_type)
+
 
 class Board(tk.Canvas):
     WIDTH = 400
