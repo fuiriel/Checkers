@@ -10,7 +10,7 @@ class Player:
         self.type = player_type
         self.name = list(PLAYERS.keys())[player_type.value]
         self.color = CheckerColor.ORANGE if self.type == PlayerType.USER else CheckerColor.BLUE
-        self.score_label_base = 'Computer: {}' if self.type == PlayerType.COMPUTER else 'Mine: {}'
+        self.score_label_base = 'Computer: {}' if self.type == PlayerType.COMPUTER else 'Me: {}'
         self.scoreboard = Label(master, self.get_player_score_label(), 13)
 
     def get_checkers_count(self):

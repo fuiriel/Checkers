@@ -112,11 +112,11 @@ class Board(tk.Canvas):
                     x1 = (j * self.tile_height) + self.CHECKER_BORDER
                     x2 = ((j + 1) * self.tile_height) - self.CHECKER_BORDER
                     id_tag = self.create_oval(x1, y1, x2, y2, fill=checker_color.value)
-                    self.tag_bind(id_tag, "<ButtonPress-1>", self.on_checker_click)
                     new_checker = Checker(i, j, checker_color, id_tag)
                     if checker_color == CheckerColor.BLUE:
                         self.blue_checkers.append((id_tag, new_checker))
                     elif checker_color == CheckerColor.ORANGE:
+                        self.tag_bind(id_tag, "<ButtonPress-1>", self.on_checker_click)
                         self.orange_checkers.append((id_tag, new_checker))
 
     def on_checker_click(self, event):
