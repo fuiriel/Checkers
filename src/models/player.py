@@ -19,11 +19,10 @@ class Player:
     def get_checkers_count(self):
         return self.checkers_count
 
-    def delete_checkers(self, *checker_ids):
-        delete_checkers = list(filter(lambda checker: (checker_ids.count(checker.id_tag)), self.checkers))
-        for dc in delete_checkers:
-            dc.board.delete(dc.id_tag)
-            self.checkers.remove(dc)
+    def delete_checker(self, checker):
+        # todo check if player has this checker
+        checker.board.delete(checker.id_tag)
+        self.checkers.remove(checker)
         self.checkers_count = len(self.checkers)
         self.update_scoreboard()
 

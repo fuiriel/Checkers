@@ -148,8 +148,7 @@ class Board(tk.Canvas):
             return
         list_of_moves: [] = []
 
-        # fixme: atrapa poruszania pionkiem
-        # todo: przeliczenie możliwych ruchów(done), skoków(done), wymuszeń skoków(done), uwzględniając damkę
+        # todo: dodanie damy do logiki ruchów pionka
         if self.current_checker == Checker.king:
             self.calculate_king_horizontal_moves()
             self.calculate_king_vertical_moves()
@@ -192,9 +191,9 @@ class Board(tk.Canvas):
         checker = self.get_checker_object_from_row_col(row, col)
 
         if checker.color == CheckerColor.ORANGE:
-            self.master.players[PlayerType.COMPUTER].delete_checkers(checker.id_tag)
+            self.master.players[PlayerType.USER].delete_checker(checker)
         else:
-            self.master.players[PlayerType.USER].delete_checkers(checker.id_tag)
+            self.master.players[PlayerType.COMPUTER].delete_checker(checker)
 
     def calculate_checker_moves(self):
 
