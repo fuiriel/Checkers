@@ -109,14 +109,10 @@ class Board(tk.Canvas):
                     if new_checker.color == CheckerColor.BLUE:
                         self.blue_checkers.append(new_checker)
                     elif new_checker.color == CheckerColor.ORANGE:
-                        self.tag_bind(new_checker.id_tag, "<ButtonPress-1>", self.on_checker_click)
                         self.orange_checkers.append(new_checker)
+                    self.tag_bind(new_checker.id_tag, "<ButtonPress-1>", self.on_checker_click)
 
     def on_checker_click(self, event):
-        if self.parent.current_player_type == PlayerType.COMPUTER:
-            print('It\'s computer\'s turn!')
-            return
-
         x = self.canvasx(event.x)
         y = self.canvasy(event.y)
         checker_id = self.find_closest(x, y)[0]
@@ -124,35 +120,47 @@ class Board(tk.Canvas):
         self.show_available_moves(checker_id)
 
     def on_highlighted_tile_click(self, event):
+
         x = self.canvasx(event.x)
         y = self.canvasy(event.y)
         tile_id = self.find_closest(x, y)[0]
         tile: Tile = self.get_tile_object_from_id(tile_id)
-        if not tile:
-            print('Tile of id {} not found'.format(tile_id))
-            return
+
+        # remove checker if needed
+        removed = False
+        if self.are_capture_moves_possible():
+            self.remove_checker_after_capture(tile)
+            removed = True
 
         self.current_checker.update_location(tile.row, tile.column)
         self.clear_highlighted_tiles()
+
+        # if checker was removed and more checker can be removed
+        # todo force to use the same checker as before when multiple capture
+        if (self.are_capture_moves_possible() and removed) is not True:
+            self.parent.switch_current_player()
+
         self.current_checker = None
-        self.parent.switch_current_player()
 
     def show_available_moves(self, checker_id):
-        checker: Checker = self.get_checker_object_from_id(checker_id)
-        if not checker:
-            print('Checker of id {} not found'.format(checker_id))
+        self.current_checker = self.get_checker_object_from_id(checker_id)
+        if self.current_checker is None or self.current_checker.color != self.master.get_current_player().color:
             return
-        self.current_checker = checker
+        list_of_moves: [] = []
 
         # fixme: atrapa poruszania pionkiem
-        # todo: przeliczenie możliwych ruchów, skoków, wymuszeń skoków, uwzględniając damkę
-        tile: Tile = self.get_tile_object_from_row_col(checker.row - 1, checker.column + 1)
-        if not tile:
-            print('Tile ({}, {}) not found'.format(checker.row - 1, checker.column + 1))
-            return
+        # todo: przeliczenie możliwych ruchów(done), skoków(done), wymuszeń skoków(done), uwzględniając damkę
+        if self.current_checker == Checker.king:
+            self.calculate_king_horizontal_moves()
+            self.calculate_king_vertical_moves()
+        else:
+            list_of_moves = self.calculate_checker_moves()
 
-        self.highlighted_tiles.append(tile)
-        tile.highlight()
+        for move in list_of_moves:
+            self.highlighted_tiles.append(self.get_tile_object_from_row_col(move[0], move[1]))
+
+        for tile in self.highlighted_tiles:
+            tile.highlight()
 
     def clear_highlighted_tiles(self):
         for tile in self.highlighted_tiles:
@@ -176,3 +184,74 @@ class Board(tk.Canvas):
         checkers = [*self.blue_checkers, *self.orange_checkers]
         searched_checker = list(filter(lambda checker: (checker.row == row and checker.column == column), checkers))
         return searched_checker[0] if len(searched_checker) else None
+
+    # todo Fix me
+    def remove_checker_after_capture(self, tile):
+        col = (self.current_checker.column + tile.column)/2
+        row = (self.current_checker.row + tile.row)/2
+        checker = self.get_checker_object_from_row_col(row, col)
+
+        if checker.color == CheckerColor.ORANGE:
+            self.master.players[PlayerType.COMPUTER].delete_checkers(checker.id_tag)
+        else:
+            self.master.players[PlayerType.USER].delete_checkers(checker.id_tag)
+
+    def calculate_checker_moves(self):
+
+        row = self.current_checker.row
+        col = self.current_checker.column
+        if self.current_checker.color == CheckerColor.ORANGE:
+            normal_dash = [[-1, -1], [-1, 1]]
+        else:
+            normal_dash = [[1, 1], [1, -1]]
+
+        capture_dash = [[-2, -2], [-2, 2], [2, -2], [2, 2]]
+        normal_moves = []
+        capture_moves = []
+
+        for dash in normal_dash:
+            if self.is_valid_move(row + dash[0], col + dash[1]):
+                normal_moves.append([row + dash[0], col + dash[1]])
+        for dash in capture_dash:
+            if self.is_valid_move(row + dash[0], col + dash[1]):
+                capture_moves.append([row + dash[0], col + dash[1]])
+
+        # must take capture move if possible
+        if capture_moves:
+            return capture_moves
+        else:
+            return normal_moves
+
+    def are_capture_moves_possible(self):
+        capture_moves = []
+        capture_dash = [[-2, -2], [-2, 2], [2, -2], [2, 2]]
+        row = self.current_checker.row
+        col = self.current_checker.column
+
+        for dash in capture_dash:
+            if self.is_valid_move(row + dash[0], col + dash[1]):
+                capture_moves.append([row + dash[0], col + dash[1]])
+
+        return len(capture_moves) != 0
+
+    def is_valid_move(self, row, col):
+        if 0 <= row < self.ROWS and 0 <= col < self.COLUMNS:
+            checker = self.get_checker_object_from_row_col(row, col)
+            # if we are checking for capture move make sure there is checker between
+            if abs(row - self.current_checker.row) == 2:
+                middle_row = (row + self.current_checker.row)/2
+                middle_col = (col + self.current_checker.column)/2
+                middle_checker = self.get_checker_object_from_row_col(middle_row, middle_col)
+                return checker is None and middle_checker is not None and middle_checker.color is not self.current_checker.color
+            return checker is None
+        else:
+            return False
+
+    def calculate_king_horizontal_moves(self):
+        # todo implementacja
+        pass
+
+    def calculate_king_vertical_moves(self):
+        # todo implementacja
+        pass
+
