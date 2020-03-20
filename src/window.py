@@ -35,4 +35,3 @@ class CheckersApp(tk.Canvas):
         self.current_view.destroy()
         self.current_view = self.views[view_type]
         self.current_view.display_view()
-

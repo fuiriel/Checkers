@@ -24,5 +24,3 @@ class Tile:
     def unhighlight(self):
         self.board.itemconfig(self.id_val, fill=self.color)
         self.board.tag_unbind(self.id_val, "<ButtonPress-1>")
-
-

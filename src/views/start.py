@@ -44,4 +44,3 @@ class StartView(View):
         if max_depth and player:
             self.app_ref.change_view(ViewType.GAME)
             self.app_ref.max_depth.trace_vdelete('w', self.app_ref.max_depth.trace_id)
-
