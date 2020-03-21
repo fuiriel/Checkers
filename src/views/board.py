@@ -1,3 +1,4 @@
+from typing import List
 from src.models.checker import Checker
 from src.models.player import Player
 from src.models.tile import Tile
@@ -7,7 +8,7 @@ from src.views.widgets import *
 
 # Widok planszy
 class BoardView(View):
-    current_player_type = None
+    current_player_type: PlayerType = None
 
     def __init__(self, app_ref):
         super().__init__(app_ref)
@@ -16,7 +17,7 @@ class BoardView(View):
         self.current_player_checker_label.config(state=tk.DISABLED, width=5)
         self.max_depth_label = Label(self, '', 12)
         self.board = Board(self)
-        self.players = {
+        self.players: {PlayerType: Player} = {
             PlayerType.COMPUTER: Player(self, PlayerType.COMPUTER, self.board.blue_checkers),
             PlayerType.USER: Player(self, PlayerType.USER, self.board.orange_checkers)
         }
@@ -63,6 +64,31 @@ class BoardView(View):
         new_player_type = PlayerType((self.current_player_type.value + 1) % 2)
         self.set_new_current_player(new_player_type)
 
+    def get_user(self):
+        return self.players[PlayerType.USER]
+
+    def get_computer(self):
+        return self.players[PlayerType.COMPUTER]
+
+    def end_game(self):
+        winner_label = 'Winner is {}!'
+        if self.get_computer().checkers_count > self.get_user().checkers_count:
+            winner_label = winner_label.format(self.get_computer().name)
+        elif self.get_computer().checkers_count < self.get_user().checkers_count:
+            winner_label = winner_label.format(self.get_user().name)
+        else:
+            winner_label = 'Draw!'
+        self.current_player_label['text'] = winner_label
+        self.board.unbind_all_tags()
+
+    def is_end_of_game(self):
+        if self.get_computer().checkers_count == 0 or self.get_user().checkers_count == 0:
+            return True
+        # locked king's moves
+        if self.get_computer().get_kings_moves_count() == 15 and self.get_user().get_kings_moves_count() == 15:
+            print('Każdy gracz wykonał po 15 ruchów damkami bez bić - koniec gry')
+            return True
+
 
 class Board(tk.Canvas):
     WIDTH = 400
@@ -74,16 +100,16 @@ class Board(tk.Canvas):
     tile_width = WIDTH // COLUMNS
     tile_height = HEIGHT // ROWS
 
-    orange_checkers = []
-    blue_checkers = []
-    board = []
-    highlighted_tiles = []
-    current_checker = None
+    orange_checkers: List[Checker] = []
+    blue_checkers: List[Checker] = []
+    board: List[Tile] = []
+    highlighted_tiles: List[Tile] = []
+    current_checker: Checker or None = None
 
-    def __init__(self, parent):
-        super().__init__(parent, width=self.WIDTH + self.TILE_BORDER, height=self.HEIGHT + self.TILE_BORDER,
+    def __init__(self, master):
+        super().__init__(master, width=self.WIDTH + self.TILE_BORDER, height=self.HEIGHT + self.TILE_BORDER,
                          background=light_orange, bd=0, highlightthickness=0, relief='ridge')
-        self.parent = parent
+        self.master: BoardView = master
         self.grid_rowconfigure(0, weight=1)
         self.grid_columnconfigure(0, weight=1)
         self.create_board()
@@ -120,7 +146,6 @@ class Board(tk.Canvas):
         self.show_available_moves(checker_id)
 
     def on_highlighted_tile_click(self, event):
-
         x = self.canvasx(event.x)
         y = self.canvasy(event.y)
         tile_id = self.find_closest(x, y)[0]
@@ -134,11 +159,13 @@ class Board(tk.Canvas):
 
         self.current_checker.update_location(tile.row, tile.column)
         self.clear_highlighted_tiles()
+        if self.master.is_end_of_game():
+            self.master.end_game()
 
         # if checker was removed and more checker can be removed
         # todo force to use the same checker as before when multiple capture
         if (self.are_capture_moves_possible() and removed) is not True:
-            self.parent.switch_current_player()
+            self.master.switch_current_player()
 
         self.current_checker = None
 
@@ -184,16 +211,17 @@ class Board(tk.Canvas):
         searched_checker = list(filter(lambda checker: (checker.row == row and checker.column == column), checkers))
         return searched_checker[0] if len(searched_checker) else None
 
-    # todo Fix me
     def remove_checker_after_capture(self, tile):
-        col = (self.current_checker.column + tile.column)/2
-        row = (self.current_checker.row + tile.row)/2
+        col = (self.current_checker.column + tile.column) / 2
+        row = (self.current_checker.row + tile.row) / 2
         checker = self.get_checker_object_from_row_col(row, col)
 
         if checker.color == CheckerColor.ORANGE:
-            self.master.players[PlayerType.USER].delete_checker(checker)
+            self.master.get_computer().reset_kings_moves_count()
+            self.master.get_user().delete_checker(checker)
         else:
-            self.master.players[PlayerType.COMPUTER].delete_checker(checker)
+            self.master.get_user().reset_kings_moves_count()
+            self.master.get_computer().delete_checker(checker)
 
     def calculate_checker_moves(self):
 
@@ -238,8 +266,8 @@ class Board(tk.Canvas):
             checker = self.get_checker_object_from_row_col(row, col)
             # if we are checking for capture move make sure there is checker between
             if abs(row - self.current_checker.row) == 2:
-                middle_row = (row + self.current_checker.row)/2
-                middle_col = (col + self.current_checker.column)/2
+                middle_row = (row + self.current_checker.row) / 2
+                middle_col = (col + self.current_checker.column) / 2
                 middle_checker = self.get_checker_object_from_row_col(middle_row, middle_col)
                 return checker is None and middle_checker is not None and middle_checker.color is not self.current_checker.color
             return checker is None
@@ -254,3 +282,7 @@ class Board(tk.Canvas):
         # todo implementacja
         pass
 
+    def unbind_all_tags(self):
+        checkers = [*self.blue_checkers, *self.orange_checkers]
+        for c in checkers:
+            self.tag_unbind(c.id_tag, "<ButtonPress-1>")

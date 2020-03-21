@@ -38,4 +38,3 @@ class Select(tkk.Combobox):
         self.configure(background=white, font=font, foreground=black)
 
         self.current(0)
-

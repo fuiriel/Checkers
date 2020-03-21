@@ -1,3 +1,5 @@
+from functools import reduce
+from typing import List
 from src.common.definitions import *
 from src.models.checker import Checker
 from src.views.widgets import Label
@@ -6,7 +8,7 @@ from src.views.widgets import Label
 # Model gracza
 class Player:
     checkers_count = 12
-    checkers = []
+    checkers: List[Checker] = []
 
     def __init__(self, master, player_type, checkers):
         self.type = player_type
@@ -15,12 +17,12 @@ class Player:
         self.score_label_base = 'Computer: {}' if self.type == PlayerType.COMPUTER else 'Me: {}'
         self.scoreboard = Label(master, self.get_player_score_label(), 13)
         self.checkers = checkers
+        self.master = master
 
     def get_checkers_count(self):
         return self.checkers_count
 
     def delete_checker(self, checker):
-        # todo check if player has this checker
         checker.board.delete(checker.id_tag)
         self.checkers.remove(checker)
         self.checkers_count = len(self.checkers)
@@ -35,3 +37,9 @@ class Player:
     def update_scoreboard(self):
         self.scoreboard['text'] = self.get_player_score_label()
 
+    def reset_kings_moves_count(self):
+        for c in self.checkers:
+            c.king_moves_count = 0
+
+    def get_kings_moves_count(self):
+        return reduce(lambda a, b: a + b.king_moves_count, self.checkers, 0)
