@@ -35,7 +35,7 @@ class Checker:
         self.column = new_column
         self.dimensions = calc_dimensions(new_row, new_column, self.width, self.height, self.CHECKER_BORDER)
         self.board.coords(self.id_tag, self.dimensions)
-        if (new_row == 0 and self.color == CheckerColor.BLUE) or (new_row == 7 and self.color == CheckerColor.ORANGE):
+        if (new_row == 0 and self.color == CheckerColor.ORANGE) or (new_row == 7 and self.color == CheckerColor.BLUE):
             self.set_as_king()
         if self.is_king():
             self.king_moves_count += 1
