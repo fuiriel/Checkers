@@ -7,6 +7,7 @@ class Checker:
     CHECKER_BORDER = 4.5
     id_tag = None
     king = False
+    king_moves_count = 0
 
     def __init__(self, board, row, column, width, height):
         self.board = board
@@ -36,3 +37,5 @@ class Checker:
         self.board.coords(self.id_tag, self.dimensions)
         if (new_row == 0 and self.color == CheckerColor.BLUE) or (new_row == 7 and self.color == CheckerColor.ORANGE):
             self.set_as_king()
+        if self.is_king():
+            self.king_moves_count += 1

@@ -70,6 +70,26 @@ class BoardView(View):
     def get_computer(self):
         return self.players[PlayerType.COMPUTER]
 
+    def end_game(self):
+        winner_label = 'Winner is {}!'
+        if self.get_computer().checkers_count > self.get_user().checkers_count:
+            winner_label = winner_label.format(self.get_computer().name)
+        elif self.get_computer().checkers_count < self.get_user().checkers_count:
+            winner_label = winner_label.format(self.get_user().name)
+        else:
+            winner_label = 'Draw!'
+        self.current_player_label['text'] = winner_label
+        self.board.unbind_all_tags()
+
+    def is_end_of_game(self):
+        if self.get_computer().checkers_count == 0 or self.get_user().checkers_count == 0:
+            return True
+        # locked king's moves
+        if self.get_computer().get_kings_moves_count() == 15 and self.get_user().get_kings_moves_count() == 15:
+            print('Każdy gracz wykonał po 15 ruchów damkami bez bić - koniec gry')
+            return True
+
+
 class Board(tk.Canvas):
     WIDTH = 400
     HEIGHT = 400
@@ -139,6 +159,8 @@ class Board(tk.Canvas):
 
         self.current_checker.update_location(tile.row, tile.column)
         self.clear_highlighted_tiles()
+        if self.master.is_end_of_game():
+            self.master.end_game()
 
         # if checker was removed and more checker can be removed
         # todo force to use the same checker as before when multiple capture
@@ -195,8 +217,10 @@ class Board(tk.Canvas):
         checker = self.get_checker_object_from_row_col(row, col)
 
         if checker.color == CheckerColor.ORANGE:
+            self.master.get_computer().reset_kings_moves_count()
             self.master.get_user().delete_checker(checker)
         else:
+            self.master.get_user().reset_kings_moves_count()
             self.master.get_computer().delete_checker(checker)
 
     def calculate_checker_moves(self):
@@ -258,3 +282,7 @@ class Board(tk.Canvas):
         # todo implementacja
         pass
 
+    def unbind_all_tags(self):
+        checkers = [*self.blue_checkers, *self.orange_checkers]
+        for c in checkers:
+            self.tag_unbind(c.id_tag, "<ButtonPress-1>")

@@ -1,3 +1,4 @@
+from functools import reduce
 from typing import List
 from src.common.definitions import *
 from src.models.checker import Checker
@@ -36,3 +37,9 @@ class Player:
     def update_scoreboard(self):
         self.scoreboard['text'] = self.get_player_score_label()
 
+    def reset_kings_moves_count(self):
+        for c in self.checkers:
+            c.king_moves_count = 0
+
+    def get_kings_moves_count(self):
+        return reduce(lambda a, b: a + b.king_moves_count, self.checkers, 0)
