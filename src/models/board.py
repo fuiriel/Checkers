@@ -30,7 +30,7 @@ class Board(tk.Canvas):
     capture_moves: List[List[int]] = []
     normal_moves: List[List[int]] = []
     capture_checkers: List[Checker] = []
-    dont_allow_switch_of_checkers = False
+    force_jump = False
 
     def __init__(self, master):
         super().__init__(master, width=self.WIDTH + self.TILE_BORDER, height=self.HEIGHT + self.TILE_BORDER,
@@ -67,30 +67,32 @@ class Board(tk.Canvas):
                     self.tag_bind(new_checker.id_tag, "<ButtonPress-1>", self.on_checker_click)
 
     def on_checker_click(self, event):
+        if self.force_jump:
+            return
+
         x = self.canvasx(event.x)
         y = self.canvasy(event.y)
         checker_id = self.find_closest(x, y)[0]
         self.clear_highlighted_tiles()
-        # jesli mamy kolejne bicie to blokujemy możliwość ruchu innymi pionkami
-        if self.dont_allow_switch_of_checkers and self.get_checker_object_from_id(checker_id) == self.current_checker:
-            self.show_available_moves(checker_id)
-        else:
-            self.show_available_moves(checker_id)
+        self.show_available_moves(checker_id)
 
     def on_highlighted_tile_click(self, event):
         x = self.canvasx(event.x)
         y = self.canvasy(event.y)
         tile_id = self.find_closest(x, y)[0]
         tile: Tile = self.get_tile_object_from_id(tile_id)
+        dont_allow_switch_of_checkers = False
 
         # Jesli ten ruch byl bijacy to trzeba usunac pionek
         if len(self.capture_moves) > 0:
             self.find_and_remove_checker_after_capture(tile)
+            self.current_checker.update_location(tile.row, tile.column)
             # jesli mamy kolejne bicia to ustawiamy flage
-            self.dont_allow_switch_of_checkers = self.are_capture_moves_possible()
+            dont_allow_switch_of_checkers = self.are_capture_moves_possible()
+        else:
+            self.current_checker.update_location(tile.row, tile.column)
 
         # update lokacji i wyczyszczenie poswietlonych plytek
-        self.current_checker.update_location(tile.row, tile.column)
         self.clear_highlighted_tiles()
         if self.master.is_end_of_game():
             self.master.end_game()
@@ -99,13 +101,15 @@ class Board(tk.Canvas):
         self.normal_moves = []
 
         # jesli nie mamy kolejnych bic to zmieniamy gracza
-        if self.dont_allow_switch_of_checkers is not True:
+        if dont_allow_switch_of_checkers is not True:
             self.current_checker = None
+            self.force_jump = False
             self.master.switch_current_player()
             return
 
-        # # force to use the same checker as before when multiple capture
-        # self.show_available_moves(self.current_checker.id_tag)
+        # wymuszenie kolejnego bicia
+        self.force_jump = True
+        self.show_available_moves(self.current_checker.id_tag)
 
     def show_available_moves(self, checker_id):
         self.current_checker = self.get_checker_object_from_id(checker_id)
@@ -164,10 +168,7 @@ class Board(tk.Canvas):
             self.master.get_user().reset_kings_moves_count()
             self.master.get_computer().delete_checker(checker)
 
-        pass
-
     def calculate_checker_moves(self):
-
         row = self.current_checker.row
         col = self.current_checker.column
 
@@ -184,8 +185,6 @@ class Board(tk.Canvas):
         for dash in capture_dash:
             if self.is_valid_move(row + dash[0], col + dash[1]):
                 self.capture_moves.append([row + dash[0], col + dash[1]])
-
-        pass
 
     def find_and_remove_checker_after_capture(self, tile):
         if tile.row > self.current_checker.row:
@@ -212,19 +211,14 @@ class Board(tk.Canvas):
             if checker is not None and checker.color is not self.master.get_current_player().color:
                 self.remove_checker(point[0], point[1])
 
-        pass
-
     def are_capture_moves_possible(self):
-        capture_moves = []
-        capture_dash = [[-2, -2], [-2, 2], [2, -2], [2, 2]]
-        row = self.current_checker.row
-        col = self.current_checker.column
+        self.capture_moves = []
 
-        for dash in capture_dash:
-            if self.is_valid_move(row + dash[0], col + dash[1]):
-                capture_moves.append([row + dash[0], col + dash[1]])
-
-        return len(capture_moves) != 0
+        if self.current_checker.king:
+            self.calculate_king_moves()
+        else:
+            self.calculate_checker_moves()
+        return len(self.capture_moves) > 0
 
     def is_valid_move(self, row, col):
         if 0 <= row < self.ROWS and 0 <= col < self.COLUMNS:
@@ -234,25 +228,21 @@ class Board(tk.Canvas):
                 middle_row = (row + self.current_checker.row) / 2
                 middle_col = (col + self.current_checker.column) / 2
                 middle_checker = self.get_checker_object_from_row_col(middle_row, middle_col)
-                return checker is None and middle_checker is not None and middle_checker.color is not self.current_checker.color
+                return checker is None and middle_checker and middle_checker.color is not self.current_checker.color
             return checker is None
         else:
             return False
 
     def calculate_king_moves(self):
-
         self.find_possible_king_moves(Movement.TOP_LEFT)
         self.find_possible_king_moves(Movement.TOP_RIGHT)
         self.find_possible_king_moves(Movement.BOTTOM_LEFT)
         self.find_possible_king_moves(Movement.BOTTOM_RIGHT)
 
-        pass
-
     def find_possible_king_moves(self, movement):
         row = self.current_checker.row
         col = self.current_checker.column
         opposite_checkers_on_line = []
-        # should_continue = True
 
         if movement == Movement.BOTTOM_LEFT:
             j = col
@@ -263,7 +253,6 @@ class Board(tk.Canvas):
                         break
                 else:
                     break
-            pass
 
         if movement == Movement.TOP_RIGHT:
             j = row
@@ -274,7 +263,6 @@ class Board(tk.Canvas):
                         break
                 else:
                     break
-            pass
 
         if movement == Movement.BOTTOM_RIGHT:
             j = row
@@ -285,7 +273,6 @@ class Board(tk.Canvas):
                         break
                 else:
                     break
-            pass
 
         if movement == Movement.TOP_LEFT:
             j = col
@@ -296,9 +283,6 @@ class Board(tk.Canvas):
                         break
                 else:
                     break
-            pass
-
-        pass
 
     def get_king_move(self, row, col, opposite_checkers_on_line):
         if 0 <= row < self.ROWS and 0 <= col < self.COLUMNS:
