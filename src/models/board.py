@@ -63,7 +63,6 @@ class Board(tk.Canvas):
                         self.blue_checkers.append(new_checker)
                     elif new_checker.color == CheckerColor.ORANGE:
                         self.orange_checkers.append(new_checker)
-                        new_checker.set_as_king()
                     self.tag_bind(new_checker.id_tag, "<ButtonPress-1>", self.on_checker_click)
 
     def on_checker_click(self, event):
@@ -73,7 +72,13 @@ class Board(tk.Canvas):
         x = self.canvasx(event.x)
         y = self.canvasy(event.y)
         checker_id = self.find_closest(x, y)[0]
+
         self.clear_highlighted_tiles()
+        # wymuszenie poruszania po planszy jedynie bijącymi pionkami - jeśli takowe istnieją
+        captured = self.get_all_checkers_with_capture_moves()
+        if len(captured) > 0 and not captured.count(checker_id):
+            return
+
         self.show_available_moves(checker_id)
 
     def on_highlighted_tile_click(self, event):
@@ -210,6 +215,16 @@ class Board(tk.Canvas):
             checker = self.get_checker_object_from_row_col(point[0], point[1])
             if checker is not None and checker.color is not self.master.get_current_player().color:
                 self.remove_checker(point[0], point[1])
+
+    def get_all_checkers_with_capture_moves(self):
+        captured = []
+        current_checker_cache = self.current_checker
+        for c in self.master.get_current_player().checkers:
+            self.current_checker = c
+            if self.are_capture_moves_possible():
+                captured.append(c.id_tag)
+        self.current_checker = current_checker_cache
+        return captured
 
     def are_capture_moves_possible(self):
         self.capture_moves = []
