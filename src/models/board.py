@@ -91,16 +91,19 @@ class Board(tk.Canvas):
         # Jesli ten ruch byl bijacy to trzeba usunac pionek
         if len(self.capture_moves) > 0:
             self.find_and_remove_checker_after_capture(tile)
+            # update lokacji
             self.current_checker.update_location(tile.row, tile.column)
             # jesli mamy kolejne bicia to ustawiamy flage
             dont_allow_switch_of_checkers = self.are_capture_moves_possible()
         else:
+            # update lokacji
             self.current_checker.update_location(tile.row, tile.column)
 
-        # update lokacji i wyczyszczenie poswietlonych plytek
+        # wyczyszczenie poswietlonych plytek
         self.clear_highlighted_tiles()
         if self.master.is_end_of_game():
             self.master.end_game()
+            return
 
         self.capture_moves = []
         self.normal_moves = []
