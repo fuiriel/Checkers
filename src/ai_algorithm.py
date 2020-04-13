@@ -7,7 +7,6 @@ from src.common.definitions import *
 
 # model ruchu wykonywanego w algorytmie AI
 class AIMove:
-    weight = None
 
     def __init__(self, checker, tile, capture_moves):
         self.checker = checker
@@ -102,16 +101,19 @@ def min_max(board, depth, switched_player, alpha, beta):
 
 
 def calculate_heuristic(board, player):
-
     # waga damy to 1.5, waga pionka to 1
-    # value_for_user = ilosc_dam * wartosc_krola + ilosc_zwyklych * 1
-    # value_for_ai = to samo
-    # todo dodac mozliwosc dostepu do pionkow zeby moc wyliczyc ilosc dla dowolnego gracza
+    player_checkers = board.blue_checkers if player == PlayerType.COMPUTER else board.orange_checkers
+    kings_count = get_kings_count(player_checkers)
+    value_of_heuristic = kings_count*1.5 + (len(player_checkers) - kings_count) * 1
     if player == PlayerType.COMPUTER:
-        heuristic = 5
+        heuristic = value_of_heuristic * 1
     else:
-        heuristic = 4
+        heuristic = value_of_heuristic * -1
     return heuristic
+
+
+def get_kings_count(checkers):
+    return len(list(filter(lambda c: c.king, checkers)))
 
 
 # zwraca listę możliwych ruchów na planszy dla danego gracza
