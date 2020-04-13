@@ -1,4 +1,6 @@
 from threading import Timer
+
+from src.ai_algorithm import get_all_possible_moves
 from src.models.board import Board
 from src.models.player import Player
 from src.views.view import View
@@ -83,9 +85,18 @@ class BoardView(View):
         self.board.unbind_all_tags()
 
     def is_end_of_game(self):
+        # one player has no checkers
         if self.get_computer().checkers_count == 0 or self.get_user().checkers_count == 0:
             return True
-        # locked king's moves
+
+        # one player has locked moves
+        ai_possible_moves = get_all_possible_moves(self.board, PlayerType.COMPUTER)
+        user_possible_moves = get_all_possible_moves(self.board, PlayerType.USER)
+        if len(ai_possible_moves) == 0 or len(user_possible_moves) == 0:
+            print('Jeden z graczy nie ma już możliwych ruchów do wykonania - koniec gry')
+            return True
+
+        # all players have locked king's moves
         if self.get_computer().get_kings_moves_count() == 15 and self.get_user().get_kings_moves_count() == 15:
             print('Każdy gracz wykonał po 15 ruchów damkami bez bić - koniec gry')
             return True
