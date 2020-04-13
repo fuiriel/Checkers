@@ -1,6 +1,4 @@
 from threading import Timer
-from time import sleep
-
 from src.models.board import Board
 from src.models.player import Player
 from src.views.view import View
@@ -54,7 +52,7 @@ class BoardView(View):
         self.update_current_player_label()
         self.update_current_player_checker_label()
         if new_player_type is PlayerType.COMPUTER:
-            Timer(1.0, self.board.run_computer).start()
+            Timer(0.5, self.board.run_ai).start()
 
     def update_current_player_label(self):
         label = 'Player: {}'.format(self.get_current_player().name)

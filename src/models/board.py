@@ -1,4 +1,5 @@
 from copy import deepcopy, copy
+from threading import Timer
 from typing import List
 
 from src.ai_algorithm import calculate_move_for_ai
@@ -81,6 +82,11 @@ class Board(tk.Canvas):
         x = self.canvasx(event.x)
         y = self.canvasy(event.y)
         checker_id = self.find_closest(x, y)[0]
+        checker = self.get_checker_object_from_id(checker_id)
+
+        # sprawdza, czy pionek należy do aktualnego gracza
+        if checker.color is not self.master.get_current_player().color:
+            return
 
         self.clear_highlighted_tiles()
         # wymuszenie poruszania po planszy jedynie bijącymi pionkami - jeśli takowe istnieją
@@ -88,7 +94,7 @@ class Board(tk.Canvas):
         if len(captured) > 0 and not captured.count(checker_id):
             return
 
-        self.show_available_moves(checker_id)
+        self.show_available_moves(checker)
 
     def on_highlighted_tile_click(self, event):
         x = self.canvasx(event.x)
@@ -121,7 +127,7 @@ class Board(tk.Canvas):
         self.normal_moves = []
 
         # jesli nie mamy kolejnych bic to zmieniamy gracza
-        if dont_allow_switch_of_checkers is not True:
+        if dont_allow_switch_of_checkers is not True or quiet_move:
             self.current_checker = None
             self.force_jump = False
             if not quiet_move:
@@ -133,19 +139,19 @@ class Board(tk.Canvas):
         if self.master.current_player_type is PlayerType.USER:
             self.show_available_moves(self.current_checker.id_tag)
         else:
-            self.run_computer()
+            Timer(0.5, self.run_ai).start()
 
-    def show_available_moves(self, checker_id):
-        list_of_moves = self.calculate_avaible_moves(checker_id)
+    def show_available_moves(self, checker):
+        list_of_moves = self.calculate_avaible_moves(checker)
 
         for move in list_of_moves:
             tile = self.get_tile_object_from_row_col(move[0], move[1])
             self.highlighted_tiles.append(tile)
             tile.highlight()
 
-    def calculate_avaible_moves(self, checker_id):
-        self.current_checker = self.get_checker_object_from_id(checker_id)
-        if self.current_checker is None:  #or self.current_checker.color != self.master.get_current_player().color:
+    def calculate_avaible_moves(self, checker):
+        self.current_checker = checker
+        if self.current_checker is None:
             return []
 
         self.capture_moves = []
@@ -172,7 +178,7 @@ class Board(tk.Canvas):
         searched_tile = list(filter(lambda tile: (tile.row == row and tile.column == column), self.board))
         return searched_tile[0] if len(searched_tile) else None
 
-    def get_checker_object_from_id(self, checker_id):
+    def get_checker_object_from_id(self, checker_id) -> Checker:
         checkers = [*self.blue_checkers, *self.orange_checkers]
         searched_checker = list(filter(lambda checker: (checker.id_tag == checker_id), checkers))
         return searched_checker[0] if len(searched_checker) else None
@@ -352,8 +358,7 @@ class Board(tk.Canvas):
         board_copy.blue_checkers = deepcopy(board_copy.blue_checkers)
         return board_copy
 
-    def run_computer(self):
-        print('is Computer\'s turn!')
+    def run_ai(self):
         board_copy = self.get_copy_of_board()
         # zwraca obiekt klasy Move
         ai_move = calculate_move_for_ai(board_copy, 0)

@@ -29,8 +29,6 @@ def calculate_move_for_ai(board, depth) -> AIMove:
     possible_moves = get_all_possible_moves(board, current_player)
 
     heuristics = []
-    # todo zablokowac mozliwosc ruchu naszego, gdy AI oblicza ruch ( ja pierdole jak wolno XD )
-    # todo dodac brak przekazania kontroli przy mozliwosci kolejnego bicia, zeby komputer mogl robic multi bicie
     # Iterujemy po wszystkich mozliwych ruchach i dodajemy do heurystyki
     # jej wartosc po dojsciu do maksymalnej glebokosci
     for move in possible_moves:
@@ -125,7 +123,7 @@ def get_all_possible_moves(board, player_type) -> List[AIMove]:
     current_checker_cache = board.current_checker
     for c in checkers:
         board.current_checker = c
-        list_of_moves = board.calculate_avaible_moves(c.id_tag)
+        list_of_moves = board.calculate_avaible_moves(c)
 
         if len(list_of_moves) > 0 and (len(captured) == 0 or captured.count(c.id_tag)):
             moves += map(lambda move:
@@ -133,5 +131,4 @@ def get_all_possible_moves(board, player_type) -> List[AIMove]:
                          list_of_moves)
     board.current_checker = current_checker_cache
 
-    print(len(moves), player_type, list(map(lambda m: (m.checker.row, m.checker.column, m.capture_moves), moves)))
     return moves

@@ -1,3 +1,5 @@
+from copy import copy, deepcopy
+
 from src.common.definitions import *
 from src.common.utils import calc_dimensions
 
@@ -18,6 +20,14 @@ class Checker:
         self.color = CheckerColor.BLUE if row < 3 else CheckerColor.ORANGE
         self.dimensions = calc_dimensions(row, column, width, height, self.CHECKER_BORDER)
         self.create_checker()
+
+    def __deepcopy__(self, memo=None):
+        _dontcopy = ('tk', 'board')
+        clone = copy(self)
+        for name, value in vars(self).items():
+            if name not in _dontcopy:
+                setattr(clone, name, deepcopy(value))
+        return clone
 
     def is_king(self):
         return self.king
