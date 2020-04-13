@@ -137,7 +137,7 @@ class Board(tk.Canvas):
         # wymuszenie kolejnego bicia
         self.force_jump = True
         if self.master.current_player_type is PlayerType.USER:
-            self.show_available_moves(self.current_checker.id_tag)
+            self.show_available_moves(self.current_checker)
         else:
             Timer(0.5, self.run_ai).start()
 
