@@ -119,7 +119,7 @@ class Board(tk.Canvas):
 
         # wyczyszczenie poswietlonych plytek
         self.clear_highlighted_tiles()
-        if self.master.is_end_of_game():
+        if not quiet_move and self.master.is_end_of_game():
             self.master.end_game()
             return
 
