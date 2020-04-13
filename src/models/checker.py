@@ -32,10 +32,11 @@ class Checker:
     def is_king(self):
         return self.king
 
-    def set_as_king(self):
+    def set_as_king(self, quiet_move=False):
         if not self.king:
             self.king = True
-            self.board.itemconfig(self.id_tag, width=5)
+            if not quiet_move:
+                self.board.itemconfig(self.id_tag, width=5)
 
     def create_checker(self):
         self.id_tag = self.board.create_oval(self.dimensions, fill=self.color.value, outline=beige, width=2)
@@ -47,6 +48,7 @@ class Checker:
             self.dimensions = calc_dimensions(new_row, new_column, self.width, self.height, self.CHECKER_BORDER)
             self.board.coords(self.id_tag, self.dimensions)
         if (new_row == 0 and self.color == CheckerColor.ORANGE) or (new_row == 7 and self.color == CheckerColor.BLUE):
-            self.set_as_king()
+            self.set_as_king(quiet_move)
+            self.board.capture_moves = []
         if self.is_king():
             self.king_moves_count += 1

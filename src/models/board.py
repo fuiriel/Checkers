@@ -85,7 +85,7 @@ class Board(tk.Canvas):
         checker = self.get_checker_object_from_id(checker_id)
 
         # sprawdza, czy pionek należy do aktualnego gracza
-        if checker.color is not self.master.get_current_player().color:
+        if not checker or checker.color is not self.master.get_current_player().color:
             return
 
         self.clear_highlighted_tiles()
