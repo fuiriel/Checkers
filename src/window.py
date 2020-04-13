@@ -8,11 +8,10 @@ class CheckersApp(tk.Canvas):
     WINDOW_HEIGHT = 600
     WINDOW_WIDTH = 600
     TITLE = 'Checkers game'
-    BG_COLOR = dark_blue
     ICON_PATH = '../assets/checkers.ico'
 
     def __init__(self, master):
-        super().__init__(master, bg=self.BG_COLOR)
+        super().__init__(master, bg=BG_COLOR)
         self.grid(column=0, row=0, sticky=(tk.N, tk.W, tk.E, tk.S))
         self.columnconfigure(0, weight=1, minsize=600)
         self.rowconfigure(0, weight=1, minsize=600)

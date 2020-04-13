@@ -4,7 +4,7 @@ from src.common.definitions import *
 
 class View(tk.Frame):
     def __init__(self, app_ref):
-        super().__init__(app_ref, bg=dark_blue, relief='flat')
+        super().__init__(app_ref, bg=BG_COLOR, relief='flat')
         self.app_ref = app_ref
 
     def get_max_depth_value(self):

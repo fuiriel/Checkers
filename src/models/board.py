@@ -362,7 +362,7 @@ class Board(tk.Canvas):
         board_copy = self.get_copy_of_board()
         # zwraca obiekt klasy Move
         ai_move = calculate_move_for_ai(board_copy, 0)
-        print('AI move:', [ai_move.checker.row, ai_move.checker.column], [ai_move.tile.row, ai_move.tile.column], ai_move.weight)
+        print('AI move:', [ai_move.checker.row, ai_move.checker.column], [ai_move.tile.row, ai_move.tile.column])
         self.current_checker = self.get_checker_object_from_id(ai_move.checker.id_tag)
         self.capture_moves = ai_move.capture_moves
         self.perform_move(ai_move.tile.id_val, False)

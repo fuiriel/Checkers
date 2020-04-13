@@ -15,6 +15,7 @@ beige = '#ffe6c9'
 
 EMPTY = 0
 MAX_DEPTH = 3
+BG_COLOR = '#143363'
 
 
 def set_max_depth(max_depth):
