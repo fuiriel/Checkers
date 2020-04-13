@@ -104,11 +104,7 @@ def calculate_heuristic(board, player):
     # waga damy to 1.5, waga pionka to 1
     player_checkers = board.blue_checkers if player == PlayerType.COMPUTER else board.orange_checkers
     kings_count = get_kings_count(player_checkers)
-    value_of_heuristic = kings_count*1.5 + (len(player_checkers) - kings_count) * 1
-    if player == PlayerType.COMPUTER:
-        heuristic = value_of_heuristic * 1
-    else:
-        heuristic = value_of_heuristic * -1
+    heuristic = kings_count*1.5 + (len(player_checkers) - kings_count) * 1
     return heuristic
 
 
