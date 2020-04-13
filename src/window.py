@@ -22,7 +22,7 @@ class CheckersApp(tk.Canvas):
         master.iconbitmap(self.ICON_PATH)
 
         self.start_player = tk.StringVar()
-        self.max_depth = tk.IntVar()
+        self.max_depth = tk.IntVar(value=MAX_DEPTH)
 
         self.views = {
             ViewType.START: StartView(app_ref=self),

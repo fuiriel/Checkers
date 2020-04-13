@@ -18,7 +18,7 @@ class StartView(View):
         self.app_ref.max_depth.trace_id = self.app_ref.max_depth.trace('w', lambda name, index, mode, value=self.app_ref.max_depth: self.on_depth_change(value.get()))
 
         self.start_game_btn = Button(self, text='Start game')
-        self.start_game_btn.config(command= self.start_game, state=tk.DISABLED)
+        self.start_game_btn.config(command=self.start_game)
 
     def display_view(self):
         self.grid(column=0, row=0, sticky=(tk.N, tk.W, tk.E, tk.S))
@@ -42,5 +42,6 @@ class StartView(View):
         player = self.get_start_player_value()
 
         if max_depth and player:
+            set_max_depth(max_depth)
             self.app_ref.change_view(ViewType.GAME)
             self.app_ref.max_depth.trace_vdelete('w', self.app_ref.max_depth.trace_id)

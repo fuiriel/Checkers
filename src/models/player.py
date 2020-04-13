@@ -22,10 +22,9 @@ class Player:
     def get_checkers_count(self):
         return self.checkers_count
 
-    def delete_checker(self, checker):
-        checker.board.delete(checker.id_tag)
-        self.checkers.remove(checker)
+    def update_checkers_list(self, checker):
         self.checkers_count = len(self.checkers)
+        checker.board.delete(checker.id_tag)
         self.update_scoreboard()
 
     def get_player_score_label(self):
