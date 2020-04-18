@@ -72,11 +72,17 @@ def min_max(board, depth, switched_player, alpha, beta):
             move.perform(temp_board)
             if not temp_board.force_jump:
                 switched_player = PlayerType.USER
-            value = min_max(temp_board, depth + 1, switched_player, alpha, beta)
-            best_value = max(best_value, value)
-            alpha = max(alpha, best_value)
-            if alpha >= beta:
-                break
+                value = min_max(temp_board, depth + 1, switched_player, alpha, beta)
+                best_value = max(best_value, value)
+                alpha = max(alpha, best_value)
+                if alpha >= beta:
+                    break
+            else:
+                value = min_max(temp_board, depth, switched_player, alpha, beta)
+                best_value = max(best_value, value)
+                alpha = max(alpha, best_value)
+                if alpha >= beta:
+                    break
     # jesli użytkownik to szukamy wartosci minimalnej
     else:
         best_value = float('inf')
@@ -85,11 +91,17 @@ def min_max(board, depth, switched_player, alpha, beta):
             move.perform(temp_board)
             if not temp_board.force_jump:
                 switched_player = PlayerType.COMPUTER
-            value = min_max(temp_board, depth + 1, switched_player, alpha, beta)
-            best_value = min(best_value, value)
-            alpha = min(alpha, best_value)
-            if alpha >= beta:
-                break
+                value = min_max(temp_board, depth + 1, switched_player, alpha, beta)
+                best_value = min(best_value, value)
+                alpha = min(alpha, best_value)
+                if alpha >= beta:
+                    break
+            else:
+                value = min_max(temp_board, depth, switched_player, alpha, beta)
+                best_value = min(best_value, value)
+                alpha = min(alpha, best_value)
+                if alpha >= beta:
+                    break
 
     return best_value
 
