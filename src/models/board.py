@@ -129,7 +129,7 @@ class Board(tk.Canvas):
         self.normal_moves = []
 
         # jesli nie mamy kolejnych bic to zmieniamy gracza
-        if dont_allow_switch_of_checkers is not True or quiet_move:
+        if dont_allow_switch_of_checkers is not True:
             self.current_checker = None
             self.force_jump = False
             if not quiet_move:
@@ -138,6 +138,10 @@ class Board(tk.Canvas):
 
         # wymuszenie kolejnego bicia
         self.force_jump = True
+
+        if quiet_move:
+            return
+
         if self.master.current_player_type is PlayerType.USER:
             self.show_available_moves(self.current_checker)
         else:

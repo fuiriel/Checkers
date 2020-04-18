@@ -37,13 +37,11 @@ def calculate_move_for_ai(self, board, depth) -> AIMove:
             switched_player = PlayerType.USER
         else:
             switched_player = PlayerType.COMPUTER
-        heuristics.append(min_max(self, temp_board, depth + 1, switched_player, alpha, beta))
+        heuristics.append(min_max(temp_board, depth + 1, switched_player, alpha, beta))
 
     # znajdujemy maksymalna heurystyke sposrod wszystkich znalezionych
     max_heuristic = float('-inf')
-    for heuristic in heuristics:
-        if heuristic > max_heuristic:
-            max_heuristic = heuristic
+    max_heuristic = max(max_heuristic, max(heuristics))
 
     # odrzuc wszystkie ruchy, w ktorych heurystyka jest mniejsza niz maksymalna
     index = 0
@@ -57,7 +55,7 @@ def calculate_move_for_ai(self, board, depth) -> AIMove:
     return random.choice(possible_moves)
 
 
-def min_max(self, board, depth, switched_player, alpha, beta):
+def min_max(board, depth, switched_player, alpha, beta):
 
     # jesli doszlismy do maksymalnej glebokosci to zwroc heurystyke dla tego stanu
     if depth == MAX_DEPTH:
@@ -72,11 +70,9 @@ def min_max(self, board, depth, switched_player, alpha, beta):
         for move in possible_moves:
             temp_board = board.get_copy_of_board()
             move.perform(temp_board)
-            self.current_checker = move.checker
-            self.calculate_checker_moves()
-            if len(self.capture_moves) == 0:
+            if not temp_board.force_jump:
                 switched_player = PlayerType.USER
-            value = min_max(self, temp_board, depth + 1, switched_player, alpha, beta)
+            value = min_max(temp_board, depth + 1, switched_player, alpha, beta)
             best_value = max(best_value, value)
             alpha = max(alpha, best_value)
             if alpha >= beta:
@@ -87,11 +83,9 @@ def min_max(self, board, depth, switched_player, alpha, beta):
         for move in possible_moves:
             temp_board = board.get_copy_of_board()
             move.perform(temp_board)
-            self.current_checker = move.checker
-            self.calculate_checker_moves()
-            if len(self.capture_moves) == 0:
+            if not temp_board.force_jump:
                 switched_player = PlayerType.COMPUTER
-            value = min_max(self, temp_board, depth + 1, switched_player, alpha, beta)
+            value = min_max(temp_board, depth + 1, switched_player, alpha, beta)
             best_value = min(best_value, value)
             alpha = min(alpha, best_value)
             if alpha >= beta:
@@ -109,7 +103,6 @@ def calculate_heuristic(board):
 
     heuristic = (kings_count_ai - kings_count_player) * 12 + \
                 ((len(ai_checkers) - kings_count_ai) - (len(player_checkers) - kings_count_player)) * 10
-
     return heuristic
 
 
@@ -119,18 +112,26 @@ def get_kings_count(checkers):
 
 # zwraca listę możliwych ruchów na planszy dla danego gracza
 def get_all_possible_moves(board, player_type) -> List[AIMove]:
-    checkers = board.orange_checkers if player_type is PlayerType.USER else board.blue_checkers
-    captured = board.get_all_checkers_with_capture_moves(checkers)
-
     moves = []
-    current_checker_cache = board.current_checker
-    for c in checkers:
-        board.current_checker = c
-        list_of_moves = board.calculate_avaible_moves(c)
 
-        if len(list_of_moves) > 0 and (len(captured) == 0 or captured.count(c.id_tag)):
+    if board.current_checker is not None:
+        list_of_moves = board.calculate_avaible_moves(board.current_checker)
+
+        if len(list_of_moves) > 0:
             moves += map(lambda move:
-                         AIMove(c, board.get_tile_object_from_row_col(move[0], move[1]), board.capture_moves),
+                         AIMove(board.current_checker, board.get_tile_object_from_row_col(move[0], move[1]), board.capture_moves),
                          list_of_moves)
-    board.current_checker = current_checker_cache
+    else:
+        checkers = board.orange_checkers if player_type is PlayerType.USER else board.blue_checkers
+        captured = board.get_all_checkers_with_capture_moves(checkers)
+        for c in checkers:
+            board.current_checker = c
+            list_of_moves = board.calculate_avaible_moves(c)
+
+            if len(list_of_moves) > 0 and (len(captured) == 0 or captured.count(c.id_tag)):
+                moves += map(lambda move:
+                             AIMove(c, board.get_tile_object_from_row_col(move[0], move[1]), board.capture_moves),
+                             list_of_moves)
+        board.current_checker = None
+
     return moves
