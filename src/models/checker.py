@@ -47,8 +47,10 @@ class Checker:
         if not quiet_move:
             self.dimensions = calc_dimensions(new_row, new_column, self.width, self.height, self.CHECKER_BORDER)
             self.board.coords(self.id_tag, self.dimensions)
-        if (new_row == 0 and self.color == CheckerColor.ORANGE) or (new_row == 7 and self.color == CheckerColor.BLUE)\
-                and len(self.board.capture_moves) == 0:
-            self.set_as_king(quiet_move)
         if self.is_king():
             self.king_moves_count += 1
+
+    def check_if_king_and_set(self, quiet_move=False):
+        if (self.row == 0 and self.color == CheckerColor.ORANGE) or (self.row == 7 and self.color == CheckerColor.BLUE)\
+                and len(self.board.capture_moves) == 0:
+            self.set_as_king(quiet_move)

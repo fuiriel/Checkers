@@ -117,6 +117,8 @@ class Board(tk.Canvas):
             # update lokacji
             self.current_checker.update_location(tile.row, tile.column, quiet_move)
 
+        # sprawdza czy pionek może stać się damką
+        self.current_checker.check_if_king_and_set(quiet_move)
         # wyczyszczenie poswietlonych plytek
         self.clear_highlighted_tiles()
         if not quiet_move and self.master.is_end_of_game():
