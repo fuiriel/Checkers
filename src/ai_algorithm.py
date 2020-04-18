@@ -20,7 +20,7 @@ class AIMove:
         board.perform_move(self.tile.id_val, True)
 
 
-def calculate_move_for_ai(board, depth) -> AIMove:
+def calculate_move_for_ai(self, board, depth) -> AIMove:
 
     alpha = float('-inf')
     beta = float('inf')
@@ -37,7 +37,7 @@ def calculate_move_for_ai(board, depth) -> AIMove:
             switched_player = PlayerType.USER
         else:
             switched_player = PlayerType.COMPUTER
-        heuristics.append(min_max(temp_board, depth + 1, switched_player, alpha, beta))
+        heuristics.append(min_max(self, temp_board, depth + 1, switched_player, alpha, beta))
 
     # znajdujemy maksymalna heurystyke sposrod wszystkich znalezionych
     max_heuristic = float('-inf')
@@ -57,11 +57,11 @@ def calculate_move_for_ai(board, depth) -> AIMove:
     return random.choice(possible_moves)
 
 
-def min_max(board, depth, switched_player, alpha, beta):
+def min_max(self, board, depth, switched_player, alpha, beta):
 
     # jesli doszlismy do maksymalnej glebokosci to zwroc heurystyke dla tego stanu
     if depth == MAX_DEPTH:
-        return calculate_heuristic(board, switched_player)
+        return calculate_heuristic(board)
 
     # znajdz wszystkie aktualne ruchy w tej petli
     possible_moves = get_all_possible_moves(board, switched_player)
@@ -72,11 +72,11 @@ def min_max(board, depth, switched_player, alpha, beta):
         for move in possible_moves:
             temp_board = board.get_copy_of_board()
             move.perform(temp_board)
-            if switched_player is PlayerType.COMPUTER:
+            self.current_checker = move.checker
+            self.calculate_checker_moves()
+            if len(self.capture_moves) == 0:
                 switched_player = PlayerType.USER
-            else:
-                switched_player = PlayerType.COMPUTER
-            value = min_max(temp_board, depth + 1, switched_player, alpha, beta)
+            value = min_max(self, temp_board, depth + 1, switched_player, alpha, beta)
             best_value = max(best_value, value)
             alpha = max(alpha, best_value)
             if alpha >= beta:
@@ -87,11 +87,11 @@ def min_max(board, depth, switched_player, alpha, beta):
         for move in possible_moves:
             temp_board = board.get_copy_of_board()
             move.perform(temp_board)
-            if switched_player is PlayerType.COMPUTER:
-                switched_player = PlayerType.USER
-            else:
+            self.current_checker = move.checker
+            self.calculate_checker_moves()
+            if len(self.capture_moves) == 0:
                 switched_player = PlayerType.COMPUTER
-            value = min_max(temp_board, depth + 1, switched_player, alpha, beta)
+            value = min_max(self, temp_board, depth + 1, switched_player, alpha, beta)
             best_value = min(best_value, value)
             alpha = min(alpha, best_value)
             if alpha >= beta:
@@ -100,11 +100,16 @@ def min_max(board, depth, switched_player, alpha, beta):
     return best_value
 
 
-def calculate_heuristic(board, player):
-    # waga damy to 1.5, waga pionka to 1
-    player_checkers = board.blue_checkers if player == PlayerType.COMPUTER else board.orange_checkers
-    kings_count = get_kings_count(player_checkers)
-    heuristic = kings_count*1.5 + (len(player_checkers) - kings_count) * 1
+def calculate_heuristic(board):
+    # waga damy to 12, waga pionka to 10
+    player_checkers = board.orange_checkers
+    ai_checkers = board.blue_checkers
+    kings_count_player = get_kings_count(player_checkers)
+    kings_count_ai = get_kings_count(ai_checkers)
+
+    heuristic = (kings_count_ai - kings_count_player) * 12 + \
+                ((len(ai_checkers) - kings_count_ai) - (len(player_checkers) - kings_count_player)) * 10
+
     return heuristic
 
 
@@ -128,5 +133,4 @@ def get_all_possible_moves(board, player_type) -> List[AIMove]:
                          AIMove(c, board.get_tile_object_from_row_col(move[0], move[1]), board.capture_moves),
                          list_of_moves)
     board.current_checker = current_checker_cache
-
     return moves
