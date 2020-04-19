@@ -95,15 +95,27 @@ def min_max(board, depth, switched_player, alpha, beta):
     return best_value
 
 
-def calculate_heuristic(board):
-    # waga damy to 12, waga pionka to 10
-    player_checkers = board.orange_checkers
-    ai_checkers = board.blue_checkers
-    kings_count_player = get_kings_count(player_checkers)
-    kings_count_ai = get_kings_count(ai_checkers)
+def calculate_heuristic(board, current_player):
+    if current_player is PlayerType.COMPUTER:
+        enemy_checkers = board.orange_checkers
+        self_checkers = board.blue_checkers
+    else:
+        enemy_checkers = board.blue_checkers
+        self_checkers = board.orange_checkers
 
-    heuristic = (kings_count_ai - kings_count_player) * 12 + \
-                ((len(ai_checkers) - kings_count_ai) - (len(player_checkers) - kings_count_player)) * 10
+    kings_count_enemy = get_kings_count(enemy_checkers)
+    kings_count_self = get_kings_count(self_checkers)
+
+    enemy_captured = board.get_all_checkers_with_capture_moves(enemy_checkers)
+    self_captured = board.get_all_checkers_with_capture_moves(self_checkers)
+
+    enemy_possible_moves = get_all_possible_moves(board, enemy_checkers)
+    self_possible_moves = get_all_possible_moves(board, enemy_checkers)
+
+    heuristic = (kings_count_self - kings_count_enemy) * W_K + \
+                ((len(self_checkers) - kings_count_self) - (len(enemy_checkers) - kings_count_enemy)) * W_C +\
+                (len(self_captured) * W_JP - len(enemy_captured) * W_JE) + \
+                (len(self_possible_moves) - len(enemy_possible_moves)) * W_PM
     return heuristic
 
 

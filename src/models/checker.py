@@ -55,3 +55,7 @@ class Checker:
             or (self.row == 7 and self.color == CheckerColor.BLUE))\
                 and len(self.board.capture_moves) == 0:
             self.set_as_king(quiet_move)
+
+    def to_string(self):
+        return f"[{self.color}, {self.id_tag}, ({self.row}, {self.column})]"
+

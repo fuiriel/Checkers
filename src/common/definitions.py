@@ -39,3 +39,17 @@ class ViewType(Enum):
 class CheckerColor(Enum):
     ORANGE = orange
     BLUE = dark_blue
+
+
+# waga damki
+W_K = 5
+# waga zwykłego pionka
+W_C = 1
+# waga bicia gracza
+W_JP = 3
+# waga bicia przeciwnika
+W_JE = 6
+# waga możliwych ruchów
+W_PM = 1
+
+
