@@ -1,4 +1,3 @@
-from copy import deepcopy
 import random
 from typing import List
 
@@ -15,12 +14,12 @@ class AIMove:
 
     # wykonuje ruch na planszy
     def perform(self, board):
-        board.current_checker = deepcopy(self.checker)
+        board.current_checker = board.get_checker_object_from_id(self.checker.id_tag)
         board.capture_moves = self.capture_moves
         board.perform_move(self.tile.id_val, True)
 
 
-def calculate_move_for_ai(self, board, depth) -> AIMove:
+def calculate_move_for_ai(board, depth) -> AIMove:
 
     alpha = float('-inf')
     beta = float('inf')
@@ -56,11 +55,9 @@ def calculate_move_for_ai(self, board, depth) -> AIMove:
 
 
 def min_max(board, depth, switched_player, alpha, beta):
-
     # jesli doszlismy do maksymalnej glebokosci to zwroc heurystyke dla tego stanu
     if depth == MAX_DEPTH:
-        return calculate_heuristic(board)
-
+        return calculate_heuristic(board, switched_player)
     # znajdz wszystkie aktualne ruchy w tej petli
     possible_moves = get_all_possible_moves(board, switched_player)
 
@@ -73,16 +70,12 @@ def min_max(board, depth, switched_player, alpha, beta):
             if not temp_board.force_jump:
                 switched_player = PlayerType.USER
                 value = min_max(temp_board, depth + 1, switched_player, alpha, beta)
-                best_value = max(best_value, value)
-                alpha = max(alpha, best_value)
-                if alpha >= beta:
-                    break
             else:
                 value = min_max(temp_board, depth, switched_player, alpha, beta)
-                best_value = max(best_value, value)
-                alpha = max(alpha, best_value)
-                if alpha >= beta:
-                    break
+            best_value = max(best_value, value)
+            alpha = max(alpha, best_value)
+            if alpha >= beta:
+                break
     # jesli użytkownik to szukamy wartosci minimalnej
     else:
         best_value = float('inf')
@@ -92,16 +85,12 @@ def min_max(board, depth, switched_player, alpha, beta):
             if not temp_board.force_jump:
                 switched_player = PlayerType.COMPUTER
                 value = min_max(temp_board, depth + 1, switched_player, alpha, beta)
-                best_value = min(best_value, value)
-                alpha = min(alpha, best_value)
-                if alpha >= beta:
-                    break
             else:
                 value = min_max(temp_board, depth, switched_player, alpha, beta)
-                best_value = min(best_value, value)
-                alpha = min(alpha, best_value)
-                if alpha >= beta:
-                    break
+            best_value = min(best_value, value)
+            alpha = min(alpha, best_value)
+            if alpha >= beta:
+                break
 
     return best_value
 

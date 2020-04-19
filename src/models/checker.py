@@ -51,6 +51,7 @@ class Checker:
             self.king_moves_count += 1
 
     def check_if_king_and_set(self, quiet_move=False):
-        if (self.row == 0 and self.color == CheckerColor.ORANGE) or (self.row == 7 and self.color == CheckerColor.BLUE)\
+        if ((self.row == 0 and self.color == CheckerColor.ORANGE)
+            or (self.row == 7 and self.color == CheckerColor.BLUE))\
                 and len(self.board.capture_moves) == 0:
             self.set_as_king(quiet_move)

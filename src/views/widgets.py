@@ -26,7 +26,7 @@ class NumberBox(tk.Spinbox):
         super().__init__(master, state='readonly', justify='center')
         self['textvariable'] = variable
         font = gen_font(12)
-        self.configure(background=white, font=font, foreground=black, relief='flat', from_=0, to=25)
+        self.configure(background=white, font=font, foreground=black, relief='flat', from_=0, to=15)
 
 
 class Select(tkk.Combobox):
