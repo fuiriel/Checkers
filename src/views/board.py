@@ -1,10 +1,10 @@
 from threading import Timer
 
-from src.ai_algorithm import get_all_possible_moves
-from src.models.board import Board
-from src.models.player import Player
-from src.views.view import View
-from src.views.widgets import *
+from ai_algorithm import get_all_possible_moves
+from models.board import Board
+from models.player import Player
+from views.view import View
+from views.widgets import *
 
 
 # Widok planszy

@@ -1,7 +1,7 @@
 from copy import copy, deepcopy
 
-from src.common.definitions import *
-from src.common.utils import calc_dimensions
+from common.definitions import *
+from common.utils import calc_dimensions
 
 
 # Model pionka

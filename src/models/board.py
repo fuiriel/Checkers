@@ -2,10 +2,10 @@ from copy import deepcopy, copy
 from threading import Timer
 from typing import List
 
-from src.ai_algorithm import calculate_move_for_ai
-from src.models.checker import Checker
-from src.models.tile import Tile
-from src.views.widgets import *
+from ai_algorithm import calculate_move_for_ai
+from models.checker import Checker
+from models.tile import Tile
+from views.widgets import *
 
 
 class Movement(Enum):
@@ -38,7 +38,7 @@ class Board(tk.Canvas):
     def __init__(self, master):
         super().__init__(master, width=self.WIDTH + self.TILE_BORDER, height=self.HEIGHT + self.TILE_BORDER,
                          background=light_orange, bd=0, highlightthickness=0, relief='ridge')
-        from src.views.board import BoardView
+        from views.board import BoardView
         self.master: BoardView = master
         self.grid_rowconfigure(0, weight=1)
         self.grid_columnconfigure(0, weight=1)

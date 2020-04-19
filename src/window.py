@@ -1,6 +1,6 @@
-from src.common.definitions import *
-from src.views.board import BoardView
-from src.views.start import StartView
+from common.definitions import *
+from views.board import BoardView
+from views.start import StartView
 import tkinter as tk
 
 
@@ -8,7 +8,6 @@ class CheckersApp(tk.Canvas):
     WINDOW_HEIGHT = 600
     WINDOW_WIDTH = 600
     TITLE = 'Checkers game'
-    ICON_PATH = '../assets/checkers.ico'
 
     def __init__(self, master):
         super().__init__(master, bg=BG_COLOR)
@@ -18,7 +17,6 @@ class CheckersApp(tk.Canvas):
         master.title(self.TITLE)
         master.resizable(0, 0)
         master.minsize(self.WINDOW_WIDTH, self.WINDOW_HEIGHT)
-        master.iconbitmap(self.ICON_PATH)
 
         self.start_player = tk.StringVar()
         self.max_depth = tk.IntVar(value=MAX_DEPTH)

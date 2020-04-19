@@ -1,5 +1,5 @@
 import tkinter as tk
-from src.common.definitions import *
+from common.definitions import *
 
 
 class View(tk.Frame):

@@ -1,5 +1,5 @@
-from src.views.view import View
-from src.views.widgets import *
+from views.view import View
+from views.widgets import *
 
 
 # Widok startowy

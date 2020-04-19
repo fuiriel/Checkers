@@ -1,8 +1,8 @@
 import tkinter as tk
 import tkinter.ttk as tkk
 
-from src.common.definitions import *
-from src.common.utils import gen_font
+from common.definitions import *
+from common.utils import gen_font
 
 
 class Button(tk.Button):

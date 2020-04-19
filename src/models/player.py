@@ -1,8 +1,8 @@
 from functools import reduce
 from typing import List
-from src.common.definitions import *
-from src.models.checker import Checker
-from src.views.widgets import Label
+from common.definitions import *
+from models.checker import Checker
+from views.widgets import Label
 
 
 # Model gracza

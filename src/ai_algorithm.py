@@ -1,7 +1,7 @@
 import random
 from typing import List
 
-from src.common.definitions import *
+from common.definitions import *
 
 
 # model ruchu wykonywanego w algorytmie AI
