@@ -42,13 +42,13 @@ class CheckerColor(Enum):
 
 
 # waga damki
-W_K = 5
+W_K = 1.2
 # waga zwykłego pionka
-W_C = 1
+W_C = 1.1
 # waga bicia gracza
-W_JP = 3
+W_JP = 1.3
 # waga bicia przeciwnika
-W_JE = 6
+W_JE = 1.8
 # waga możliwych ruchów
 W_PM = 1
 

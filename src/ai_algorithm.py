@@ -32,11 +32,7 @@ def calculate_move_for_ai(board, depth) -> AIMove:
     for move in possible_moves:
         temp_board = board.get_copy_of_board()
         move.perform(temp_board)
-        if current_player is PlayerType.COMPUTER:
-            switched_player = PlayerType.USER
-        else:
-            switched_player = PlayerType.COMPUTER
-        heuristics.append(min_max(temp_board, depth + 1, switched_player, alpha, beta))
+        heuristics.append(min_max(temp_board, depth + 1, current_player, alpha, beta))
 
     # znajdujemy maksymalna heurystyke sposrod wszystkich znalezionych
     max_heuristic = float('-inf')
