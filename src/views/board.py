@@ -89,12 +89,11 @@ class BoardView(View):
         if self.get_computer().checkers_count == 0 or self.get_user().checkers_count == 0:
             return True
 
-        # one player has locked moves
+        # current player has locked moves
         copy = self.board.get_copy_of_board()
         copy.current_checker = None
-        ai_possible_moves = get_all_possible_moves(copy, PlayerType.COMPUTER)
-        user_possible_moves = get_all_possible_moves(copy, PlayerType.USER)
-        if len(ai_possible_moves) == 0 or len(user_possible_moves) == 0:
+        possible_moves = get_all_possible_moves(copy, self.current_player_type)
+        if len(possible_moves) == 0:
             print('Jeden z graczy nie ma już możliwych ruchów do wykonania - koniec gry')
             return True
 
