@@ -90,8 +90,10 @@ class BoardView(View):
             return True
 
         # one player has locked moves
-        ai_possible_moves = get_all_possible_moves(self.board, PlayerType.COMPUTER)
-        user_possible_moves = get_all_possible_moves(self.board, PlayerType.USER)
+        copy = self.board.get_copy_of_board()
+        copy.current_checker = None
+        ai_possible_moves = get_all_possible_moves(copy, PlayerType.COMPUTER)
+        user_possible_moves = get_all_possible_moves(copy, PlayerType.USER)
         if len(ai_possible_moves) == 0 or len(user_possible_moves) == 0:
             print('Jeden z graczy nie ma już możliwych ruchów do wykonania - koniec gry')
             return True
