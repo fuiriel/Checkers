@@ -367,8 +367,12 @@ class Board(tk.Canvas):
 
     def run_ai(self):
         board_copy = self.get_copy_of_board()
+        import time
+        start = time.time_ns()
         # zwraca obiekt klasy Move
         ai_move = calculate_move_for_ai(board_copy, 0)
+        end = time.time_ns()
+        print(f"{end - start}")
         print('AI move:', [ai_move.checker.row, ai_move.checker.column], [ai_move.tile.row, ai_move.tile.column])
         self.current_checker = self.get_checker_object_from_id(ai_move.checker.id_tag)
         self.capture_moves = ai_move.capture_moves

@@ -25,6 +25,8 @@ def calculate_move_for_ai(board, depth) -> AIMove:
     beta = float('inf')
     current_player = PlayerType.COMPUTER
     possible_moves = get_all_possible_moves(board, current_player)
+    if len(possible_moves) == 1:
+        return possible_moves[0]
 
     heuristics = []
     # Iterujemy po wszystkich mozliwych ruchach i dodajemy do heurystyki
@@ -52,10 +54,12 @@ def calculate_move_for_ai(board, depth) -> AIMove:
 
 def min_max(board, depth, switched_player, alpha, beta):
     # jesli doszlismy do maksymalnej glebokosci to zwroc heurystyke dla tego stanu
-    if depth == MAX_DEPTH:
+    if depth == board.master.get_max_depth_value():
         return calculate_heuristic(board, switched_player)
     # znajdz wszystkie aktualne ruchy w tej petli
     possible_moves = get_all_possible_moves(board, switched_player)
+    if len(possible_moves) == 1:
+        return calculate_heuristic(board, switched_player)
 
     # jesli komputer to szukamy wartosci maksymalnej
     if switched_player == PlayerType.COMPUTER:

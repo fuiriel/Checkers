@@ -18,8 +18,6 @@ MAX_DEPTH = 3
 BG_COLOR = '#143363'
 
 
-def set_max_depth(max_depth):
-    MAX_DEPTH = max_depth
 
 
 class PlayerType(Enum):

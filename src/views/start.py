@@ -42,6 +42,5 @@ class StartView(View):
         player = self.get_start_player_value()
 
         if max_depth and player:
-            set_max_depth(max_depth)
             self.app_ref.change_view(ViewType.GAME)
             self.app_ref.max_depth.trace_vdelete('w', self.app_ref.max_depth.trace_id)
