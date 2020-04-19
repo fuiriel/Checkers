@@ -1,5 +1,5 @@
 import random
-from typing import List
+from typing import List, Dict, Set
 
 from common.definitions import *
 
@@ -7,20 +7,20 @@ from common.definitions import *
 # model ruchu wykonywanego w algorytmie AI
 class AIMove:
 
-    def __init__(self, checker, tile, capture_moves):
+    def __init__(self, checker, move, capture_moves):
         self.checker = checker
-        self.tile = tile
+        self.row = move[0]
+        self.col = move[1]
         self.capture_moves = capture_moves
 
     # wykonuje ruch na planszy
     def perform(self, board):
         board.current_checker = board.get_checker_object_from_id(self.checker.id_tag)
         board.capture_moves = self.capture_moves
-        board.perform_move(self.tile.id_val, True)
+        board.perform_move(self.row, self.col, True)
 
 
 def calculate_move_for_ai(board, depth) -> AIMove:
-
     alpha = float('-inf')
     beta = float('inf')
     current_player = PlayerType.COMPUTER
@@ -113,14 +113,14 @@ def calculate_heuristic(board, current_player):
     self_possible_moves = get_all_possible_moves(board, enemy_checkers)
 
     heuristic = (kings_count_self - kings_count_enemy) * W_K + \
-                ((len(self_checkers) - kings_count_self) - (len(enemy_checkers) - kings_count_enemy)) * W_C +\
+                ((len(self_checkers) - kings_count_self) - (len(enemy_checkers) - kings_count_enemy)) * W_C + \
                 (len(self_captured) * W_JP - len(enemy_captured) * W_JE) + \
                 (len(self_possible_moves) - len(enemy_possible_moves)) * W_PM
     return heuristic
 
 
 def get_kings_count(checkers):
-    return len(list(filter(lambda c: c.king, checkers)))
+    return len(list(filter(lambda c: c.king, checkers.values())))
 
 
 # zwraca listę możliwych ruchów na planszy dla danego gracza
@@ -132,18 +132,26 @@ def get_all_possible_moves(board, player_type) -> List[AIMove]:
 
         if len(list_of_moves) > 0:
             moves += map(lambda move:
-                         AIMove(board.current_checker, board.get_tile_object_from_row_col(move[0], move[1]), board.capture_moves),
+                         AIMove(
+                             board.current_checker,
+                             (move[0], move[1]),
+                             board.capture_moves
+                         ),
                          list_of_moves)
     else:
-        checkers = board.orange_checkers if player_type is PlayerType.USER else board.blue_checkers
-        captured = board.get_all_checkers_with_capture_moves(checkers)
-        for c in checkers:
+        from models.checker import Checker
+        checkers: Dict[str, Checker] = board.orange_checkers if player_type is PlayerType.USER else board.blue_checkers
+        captured: List[str] = board.get_all_checkers_with_capture_moves(checkers)
+        for c in checkers.values():
             board.current_checker = c
             list_of_moves = board.calculate_avaible_moves(c)
 
-            if len(list_of_moves) > 0 and (len(captured) == 0 or captured.count(c.id_tag)):
+            if len(list_of_moves) > 0 and (len(captured) == 0 or c.id_tag in captured):
                 moves += map(lambda move:
-                             AIMove(c, board.get_tile_object_from_row_col(move[0], move[1]), board.capture_moves),
+                             AIMove(
+                                 c,
+                                 (move[0], move[1]),
+                                 board.capture_moves),
                              list_of_moves)
         board.current_checker = None
 

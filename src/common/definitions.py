@@ -18,8 +18,6 @@ MAX_DEPTH = 3
 BG_COLOR = '#143363'
 
 
-
-
 class PlayerType(Enum):
     COMPUTER = 0
     USER = 1
@@ -49,5 +47,3 @@ W_JP = 1.3
 W_JE = 1.8
 # waga możliwych ruchów
 W_PM = 1
-
-

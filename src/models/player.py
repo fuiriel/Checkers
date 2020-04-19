@@ -1,5 +1,5 @@
 from functools import reduce
-from typing import List
+from typing import List, Dict
 from common.definitions import *
 from models.checker import Checker
 from views.widgets import Label
@@ -8,7 +8,7 @@ from views.widgets import Label
 # Model gracza
 class Player:
     checkers_count = 12
-    checkers: List[Checker] = []
+    checkers: Dict[str, Checker] = {}
 
     def __init__(self, master, player_type, checkers):
         self.type = player_type
@@ -37,8 +37,8 @@ class Player:
         self.scoreboard['text'] = self.get_player_score_label()
 
     def reset_kings_moves_count(self):
-        for c in self.checkers:
+        for c in self.checkers.values():
             c.king_moves_count = 0
 
     def get_kings_moves_count(self):
-        return reduce(lambda a, b: a + b.king_moves_count, self.checkers, 0)
+        return reduce(lambda a, b: a + b.king_moves_count, self.checkers.values(), 0)

@@ -15,7 +15,7 @@ class Tile:
         self.create_tile()
 
     def create_tile(self):
-        self.id_val = self.board.create_rectangle(self.dimensions, fill=self.color)
+        self.id_val = self.board.create_rectangle(self.dimensions, fill=self.color, tags=(self.row, self.column))
 
     def highlight(self):
         self.board.itemconfig(self.id_val, fill=grey)

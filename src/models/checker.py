@@ -39,7 +39,12 @@ class Checker:
                 self.board.itemconfig(self.id_tag, width=5)
 
     def create_checker(self):
-        self.id_tag = self.board.create_oval(self.dimensions, fill=self.color.value, outline=beige, width=2)
+        self.id_tag = self.board.create_oval(self.dimensions,
+                                             fill=self.color.value,
+                                             outline=beige,
+                                             width=2,
+                                             tags=(self.row, self.column)
+                                             )
 
     def update_location(self, new_row, new_column, quiet_move=False):
         self.row = new_row
@@ -58,4 +63,3 @@ class Checker:
 
     def to_string(self):
         return f"[{self.color}, {self.id_tag}, ({self.row}, {self.column})]"
-
