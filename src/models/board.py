@@ -1,6 +1,6 @@
 from copy import deepcopy, copy
 from threading import Timer
-from typing import List, Dict, Set
+from typing import List, Dict, Tuple
 
 from ai_algorithm import calculate_move_for_ai
 from models.checker import Checker
@@ -25,9 +25,9 @@ class Board(tk.Canvas):
     tile_width = WIDTH // COLUMNS
     tile_height = HEIGHT // ROWS
 
-    orange_checkers: Dict[str, Checker] = {}
-    blue_checkers: Dict[str, Checker] = {}
-    board: Dict[str, Tile] = {}
+    orange_checkers: Dict[Tuple[int, int], Checker] = {}
+    blue_checkers: Dict[Tuple[int, int], Checker] = {}
+    board: Dict[Tuple[int, int], Tile] = {}
     highlighted_tiles: List[Tile] = []
     current_checker: Checker or None = None
 
@@ -60,7 +60,7 @@ class Board(tk.Canvas):
         for i in range(0, self.ROWS):
             for j in range(0, self.COLUMNS):
                 new_tile = Tile(self, j, i, self.tile_width, self.tile_height, self.TILE_BORDER)
-                self.board[new_tile.id_val] = new_tile
+                self.board[(new_tile.row, new_tile.column)] = new_tile
 
     def create_checkers(self):
         for i in range(0, self.ROWS):
@@ -70,9 +70,9 @@ class Board(tk.Canvas):
                 if (i + j) % 2 == 1:
                     new_checker = Checker(self, i, j, self.tile_width, self.tile_height)
                     if new_checker.color == CheckerColor.BLUE:
-                        self.blue_checkers[new_checker.id_tag] = new_checker
+                        self.blue_checkers[(new_checker.row, new_checker.column)] = new_checker
                     elif new_checker.color == CheckerColor.ORANGE:
-                        self.orange_checkers[new_checker.id_tag] = new_checker
+                        self.orange_checkers[(new_checker.row, new_checker.column)] = new_checker
                         self.tag_bind(new_checker.id_tag, "<ButtonPress-1>", self.on_checker_click)
 
     def on_checker_click(self, event):
@@ -82,8 +82,8 @@ class Board(tk.Canvas):
         x = self.canvasx(event.x)
         y = self.canvasy(event.y)
         checker_id = self.find_closest(x, y)[0]
-        checker = self.get_checker_object_from_id(checker_id)
-
+        (row, column, *args) = self.gettags(checker_id)
+        checker = self.get_checker_object_from_row_col(int(row), int(column))
         # wymuszenie poruszania po planszy jedynie bijącymi pionkami - jeśli takowe istnieją
         captured = self.get_all_checkers_with_capture_moves()
         # sprawdza, czy pionek należy do aktualnego gracza
@@ -108,12 +108,12 @@ class Board(tk.Canvas):
         if len(self.capture_moves) > 0:
             self.find_and_remove_checker_after_capture(row, column, quiet_move)
             # update lokacji
-            self.current_checker.update_location(row, column, quiet_move)
+            self.update_location(row, column, quiet_move)
             # jesli mamy kolejne bicia to ustawiamy flage
             dont_allow_switch_of_checkers = self.are_capture_moves_possible()
         else:
             # update lokacji
-            self.current_checker.update_location(row, column, quiet_move)
+            self.update_location(row, column, quiet_move)
 
         # sprawdza czy pionek może stać się damką
         self.current_checker.check_if_king_and_set(quiet_move)
@@ -144,6 +144,17 @@ class Board(tk.Canvas):
             self.show_available_moves(self.current_checker)
         else:
             Timer(0.5, self.run_ai).start()
+
+    def update_location(self, row, column, quiet_move):
+        if self.current_checker.color is CheckerColor.ORANGE:
+            del self.orange_checkers[(self.current_checker.row, self.current_checker.column)]
+            self.orange_checkers[(row, column)] = self.current_checker
+        else:
+            del self.blue_checkers[(self.current_checker.row, self.current_checker.column)]
+            self.blue_checkers[(row, column)] = self.current_checker
+
+        # update lokacji
+        self.current_checker.update_location(row, column, quiet_move)
 
     def show_available_moves(self, checker):
         list_of_moves = self.calculate_avaible_moves(checker)
@@ -178,26 +189,19 @@ class Board(tk.Canvas):
         return self.board[tile_id]
 
     def get_tile_object_from_row_col(self, row, column) -> Tile:
-        searched_tile = list(filter(lambda tile: (tile.row == row and tile.column == column), self.board.values()))
-        return searched_tile[0] if len(searched_tile) else None
-
-    def get_checker_object_from_id(self, checker_id) -> Checker:
-        return {**self.blue_checkers, **self.orange_checkers}[checker_id]
+        return self.board.get((row, column))
 
     def get_checker_object_from_row_col(self, row, column) -> Checker:
-        checkers = [*self.blue_checkers.values(), *self.orange_checkers.values()]
-        searched_checker = list(filter(lambda checker: (checker.row == row and checker.column == column), checkers))
-        return searched_checker[0] if len(searched_checker) else None
+        return {**self.blue_checkers, **self.orange_checkers}.get((row, column))
 
-    def remove_checker(self, row, col, quite_move=False):
-        checker = self.get_checker_object_from_row_col(row, col)
+    def remove_checker(self, checker, quite_move=False):
         if checker.color == CheckerColor.ORANGE:
-            del self.orange_checkers[checker.id_tag]
+            del self.orange_checkers[(checker.row, checker.column)]
             if not quite_move:
                 self.master.get_computer().reset_kings_moves_count()
                 self.master.get_user().update_checkers_list(checker)
         else:
-            del self.blue_checkers[checker.id_tag]
+            del self.blue_checkers[(checker.row, checker.column)]
             if not quite_move:
                 self.master.get_user().reset_kings_moves_count()
                 self.master.get_computer().update_checkers_list(checker)
@@ -239,7 +243,7 @@ class Board(tk.Canvas):
         for point in points:
             checker = self.get_checker_object_from_row_col(point[0], point[1])
             if checker is not None and checker.color is not self.current_checker.color:
-                self.remove_checker(point[0], point[1], quite_move)
+                self.remove_checker(checker, quite_move)
 
     def get_all_checkers_with_capture_moves(self, checkers: Dict[str, Checker] = None) -> List[str]:
         if checkers is None:
@@ -359,11 +363,11 @@ class Board(tk.Canvas):
         board_copy = self.get_copy_of_board()
         import time
         start = time.time_ns()
-        # zwraca obiekt klasy Move
+        # zwraca obiekt klasy AIMove
         ai_move = calculate_move_for_ai(board_copy, 0)
         end = time.time_ns()
         print(f"{end - start}")
         print('AI move:', [ai_move.checker.row, ai_move.checker.column], [ai_move.row, ai_move.col])
-        self.current_checker = self.get_checker_object_from_id(ai_move.checker.id_tag)
+        self.current_checker = self.get_checker_object_from_row_col(ai_move.checker.row, ai_move.checker.column)
         self.capture_moves = ai_move.capture_moves
         self.perform_move(ai_move.row, ai_move.col, False)

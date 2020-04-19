@@ -52,6 +52,8 @@ class Checker:
         if not quiet_move:
             self.dimensions = calc_dimensions(new_row, new_column, self.width, self.height, self.CHECKER_BORDER)
             self.board.coords(self.id_tag, self.dimensions)
+            self.board.itemconfig(self.id_tag, tags=(self.row, self.column))
+
         if self.is_king():
             self.king_moves_count += 1
 

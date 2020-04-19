@@ -1,5 +1,5 @@
 from functools import reduce
-from typing import List, Dict
+from typing import Dict, Tuple
 from common.definitions import *
 from models.checker import Checker
 from views.widgets import Label
@@ -8,7 +8,7 @@ from views.widgets import Label
 # Model gracza
 class Player:
     checkers_count = 12
-    checkers: Dict[str, Checker] = {}
+    checkers: Dict[Tuple[int, int], Checker] = {}
 
     def __init__(self, master, player_type, checkers):
         self.type = player_type

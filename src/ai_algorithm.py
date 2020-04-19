@@ -1,5 +1,5 @@
 import random
-from typing import List, Dict, Set
+from typing import List, Dict
 
 from common.definitions import *
 
@@ -15,7 +15,7 @@ class AIMove:
 
     # wykonuje ruch na planszy
     def perform(self, board):
-        board.current_checker = board.get_checker_object_from_id(self.checker.id_tag)
+        board.current_checker = board.get_checker_object_from_row_col(self.checker.row, self.checker.column)
         board.capture_moves = self.capture_moves
         board.perform_move(self.row, self.col, True)
 
