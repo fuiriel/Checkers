@@ -216,24 +216,24 @@ class Board(tk.Canvas):
 
     def find_and_remove_checker_after_capture(self, row, column, quite_move=False):
         if row > self.current_checker.row:
-            row_dictionary = list(range(self.current_checker.row, row))
+            row_dictionary = list(range(self.current_checker.row + 1, row))
             if column < self.current_checker.column:
-                column_dictionary = list(range(self.current_checker.column, column, -1))
+                column_dictionary = list(range(self.current_checker.column - 1, column, -1))
             else:
-                column_dictionary = list(range(self.current_checker.column, column))
+                column_dictionary = list(range(self.current_checker.column + 1, column))
         else:
-            row_dictionary = list(range(row, self.current_checker.row))
+            row_dictionary = list(range(row + 1, self.current_checker.row))
             if column > self.current_checker.column:
-                column_dictionary = list(range(column, self.current_checker.column, -1))
+                column_dictionary = list(range(column - 1, self.current_checker.column, -1))
             else:
-                column_dictionary = list(range(column, self.current_checker.column))
+                column_dictionary = list(range(column + 1, self.current_checker.column))
 
         points = list(zip(row_dictionary, column_dictionary))
-
         for point in points:
             checker = self.get_checker_object_from_row_col(point[0], point[1])
             if checker is not None and checker.color is not self.current_checker.color:
                 self.remove_checker(checker, quite_move)
+                return
 
     def check_if_capture_moves_exists_and_assign_possible_moves(self, checkers: Dict[str, Checker] = None) -> List[str]:
         if checkers is None:
