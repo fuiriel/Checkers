@@ -108,9 +108,13 @@ class Board(tk.Canvas):
             self.update_checker_location(row, column, quiet_move)
             # jesli mamy kolejne bicia to ustawiamy flage
             dont_allow_switch_of_checkers = self.are_capture_moves_possible(self.current_checker)
+            if not quiet_move and self.current_checker.king:
+                self.master.get_current_player().reset_kings_moves_count()
         else:
             # update lokacji
             self.update_checker_location(row, column, quiet_move)
+            if not quiet_move and self.current_checker.king:
+                self.master.get_current_player().kings_moves_count += 1
 
         # sprawdza czy pionek może stać się damką
         self.current_checker.check_if_king_and_set(quiet_move)
@@ -346,4 +350,4 @@ class Board(tk.Canvas):
         print('AI move:', [ai_move.checker.row, ai_move.checker.column], [ai_move.row, ai_move.col])
         self.current_checker = self.get_checker_object_from_row_col(ai_move.checker.row, ai_move.checker.column)
         self.current_checker.capture_moves = ai_move.checker.capture_moves
-        self.perform_move(ai_move.row, ai_move.col, False)
+        self.perform_move(ai_move.row, ai_move.col)

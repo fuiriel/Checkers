@@ -15,7 +15,10 @@ class StartView(View):
         self.number_box = NumberBox(self, self.app_ref.max_depth)
         self.number_box.config(width=20)
         self.textbox_label = Label(self, 'Max search depth:')
-        self.app_ref.max_depth.trace_id = self.app_ref.max_depth.trace('w', lambda name, index, mode, value=self.app_ref.max_depth: self.on_depth_change(value.get()))
+        self.app_ref.max_depth.trace_id = self.app_ref.max_depth.trace(
+            'w',
+            lambda name, index, mode, value=self.app_ref.max_depth: self.on_depth_change(value.get())
+        )
 
         self.start_game_btn = Button(self, text='Start game')
         self.start_game_btn.config(command=self.start_game)
