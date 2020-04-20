@@ -31,8 +31,6 @@ class Board(tk.Canvas):
     highlighted_tiles: List[Tile] = []
     current_checker: Checker or None = None
 
-    capture_moves: List[List[int]] = []
-    normal_moves: List[List[int]] = []
     force_jump = False
 
     def __init__(self, master):
@@ -84,10 +82,9 @@ class Board(tk.Canvas):
         checker_id = self.find_closest(x, y)[0]
         (row, column, *args) = self.gettags(checker_id)
         checker = self.get_checker_object_from_row_col(int(row), int(column))
-        # wymuszenie poruszania po planszy jedynie bijącymi pionkami - jeśli takowe istnieją
-        captured = self.get_all_checkers_with_capture_moves()
-        # sprawdza, czy pionek należy do aktualnego gracza
-        if not checker or checker.color is not self.master.get_current_player().color\
+        captured = self.check_if_capture_moves_exists_and_assign_possible_moves()
+        # sprawdza, czy pionek należy do aktualnego gracza i czy jest to pionek bijący
+        if not checker or checker.color is not self.master.get_current_player().color \
                 or (len(captured) > 0 and checker_id not in captured):
             return
 
@@ -105,15 +102,15 @@ class Board(tk.Canvas):
         dont_allow_switch_of_checkers = False
 
         # Jesli ten ruch byl bijacy to trzeba usunac pionek
-        if len(self.capture_moves) > 0:
+        if len(self.current_checker.capture_moves) > 0:
             self.find_and_remove_checker_after_capture(row, column, quiet_move)
             # update lokacji
-            self.update_location(row, column, quiet_move)
+            self.update_checker_location(row, column, quiet_move)
             # jesli mamy kolejne bicia to ustawiamy flage
-            dont_allow_switch_of_checkers = self.are_capture_moves_possible()
+            dont_allow_switch_of_checkers = self.are_capture_moves_possible(self.current_checker)
         else:
             # update lokacji
-            self.update_location(row, column, quiet_move)
+            self.update_checker_location(row, column, quiet_move)
 
         # sprawdza czy pionek może stać się damką
         self.current_checker.check_if_king_and_set(quiet_move)
@@ -123,8 +120,7 @@ class Board(tk.Canvas):
             self.master.end_game()
             return
 
-        self.capture_moves = []
-        self.normal_moves = []
+        self.current_checker.normal_moves = []
 
         # jesli nie mamy kolejnych bic to zmieniamy gracza
         if dont_allow_switch_of_checkers is not True:
@@ -145,7 +141,7 @@ class Board(tk.Canvas):
         else:
             Timer(0.5, self.run_ai).start()
 
-    def update_location(self, row, column, quiet_move):
+    def update_checker_location(self, row, column, quiet_move):
         if self.current_checker.color is CheckerColor.ORANGE:
             del self.orange_checkers[(self.current_checker.row, self.current_checker.column)]
             self.orange_checkers[(row, column)] = self.current_checker
@@ -157,36 +153,30 @@ class Board(tk.Canvas):
         self.current_checker.update_location(row, column, quiet_move)
 
     def show_available_moves(self, checker):
-        list_of_moves = self.calculate_avaible_moves(checker)
+        self.current_checker = checker
 
-        for move in list_of_moves:
+        for move in self.current_checker.get_list_of_moves():
             tile = self.get_tile_object_from_row_col(move[0], move[1])
             self.highlighted_tiles.append(tile)
             tile.highlight()
 
-    def calculate_avaible_moves(self, checker):
+    def calculate_available_moves(self, checker):
         self.current_checker = checker
         if self.current_checker is None:
             return []
 
-        self.capture_moves = []
-        self.normal_moves = []
+        self.current_checker.capture_moves = []
+        self.current_checker.normal_moves = []
 
         if self.current_checker.king:
             self.calculate_king_moves()
         else:
             self.calculate_checker_moves()
 
-        # must take capture moves if possible
-        return self.capture_moves if len(self.capture_moves) > 0 else self.normal_moves
-
     def clear_highlighted_tiles(self):
         for tile in self.highlighted_tiles:
             tile.unhighlight()
         self.highlighted_tiles.clear()
-
-    def get_tile_object_from_id(self, tile_id) -> Tile:
-        return self.board[tile_id]
 
     def get_tile_object_from_row_col(self, row, column) -> Tile:
         return self.board.get((row, column))
@@ -216,13 +206,13 @@ class Board(tk.Canvas):
             normal_dash = [[1, 1], [1, -1]]
 
         capture_dash = [[-2, -2], [-2, 2], [2, -2], [2, 2]]
-
-        for dash in normal_dash:
-            if self.is_valid_move(row + dash[0], col + dash[1]):
-                self.normal_moves.append([row + dash[0], col + dash[1]])
         for dash in capture_dash:
             if self.is_valid_move(row + dash[0], col + dash[1]):
-                self.capture_moves.append([row + dash[0], col + dash[1]])
+                self.current_checker.capture_moves.append([row + dash[0], col + dash[1]])
+        if len(self.current_checker.capture_moves) == 0:
+            for dash in normal_dash:
+                if self.is_valid_move(row + dash[0], col + dash[1]):
+                    self.current_checker.normal_moves.append([row + dash[0], col + dash[1]])
 
     def find_and_remove_checker_after_capture(self, row, column, quite_move=False):
         if row > self.current_checker.row:
@@ -238,34 +228,28 @@ class Board(tk.Canvas):
             else:
                 column_dictionary = list(range(column, self.current_checker.column))
 
-        points = list(zip(row_dictionary,column_dictionary))
+        points = list(zip(row_dictionary, column_dictionary))
 
         for point in points:
             checker = self.get_checker_object_from_row_col(point[0], point[1])
             if checker is not None and checker.color is not self.current_checker.color:
                 self.remove_checker(checker, quite_move)
 
-    def get_all_checkers_with_capture_moves(self, checkers: Dict[str, Checker] = None) -> List[str]:
+    def check_if_capture_moves_exists_and_assign_possible_moves(self, checkers: Dict[str, Checker] = None) -> List[str]:
         if checkers is None:
             checkers = self.master.get_current_player().checkers
 
         captured = []
         current_checker_cache = self.current_checker
         for c in checkers.values():
-            self.current_checker = c
-            if self.are_capture_moves_possible():
+            if self.are_capture_moves_possible(c):
                 captured.append(c.id_tag)
         self.current_checker = current_checker_cache
         return captured
 
-    def are_capture_moves_possible(self):
-        self.capture_moves = []
-
-        if self.current_checker.king:
-            self.calculate_king_moves()
-        else:
-            self.calculate_checker_moves()
-        return len(self.capture_moves) > 0
+    def are_capture_moves_possible(self, checker):
+        self.calculate_available_moves(checker)
+        return len(self.current_checker.capture_moves) > 0
 
     def is_valid_move(self, row, col):
         if 0 <= row < self.ROWS and 0 <= col < self.COLUMNS:
@@ -343,9 +327,9 @@ class Board(tk.Canvas):
                     return False
             else:
                 if len(opposite_checkers_on_line) > 0:
-                    self.capture_moves.append([row, col])
+                    self.current_checker.capture_moves.append([row, col])
                 else:
-                    self.normal_moves.append([row, col])
+                    self.current_checker.normal_moves.append([row, col])
         return True
 
     def unbind_all_tags(self):
@@ -369,5 +353,5 @@ class Board(tk.Canvas):
         print(f"{end - start}")
         print('AI move:', [ai_move.checker.row, ai_move.checker.column], [ai_move.row, ai_move.col])
         self.current_checker = self.get_checker_object_from_row_col(ai_move.checker.row, ai_move.checker.column)
-        self.capture_moves = ai_move.capture_moves
+        self.current_checker.capture_moves = ai_move.checker.capture_moves
         self.perform_move(ai_move.row, ai_move.col, False)

@@ -7,16 +7,15 @@ from common.definitions import *
 # model ruchu wykonywanego w algorytmie AI
 class AIMove:
 
-    def __init__(self, checker, move, capture_moves):
+    def __init__(self, checker, move):
         self.checker = checker
         self.row = move[0]
         self.col = move[1]
-        self.capture_moves = capture_moves
 
     # wykonuje ruch na planszy
     def perform(self, board):
         board.current_checker = board.get_checker_object_from_row_col(self.checker.row, self.checker.column)
-        board.capture_moves = self.capture_moves
+        board.current_checker.capture_moves = self.checker.capture_moves
         board.perform_move(self.row, self.col, True)
 
 
@@ -106,8 +105,8 @@ def calculate_heuristic(board, current_player):
     kings_count_enemy = get_kings_count(enemy_checkers)
     kings_count_self = get_kings_count(self_checkers)
 
-    enemy_captured = board.get_all_checkers_with_capture_moves(enemy_checkers)
-    self_captured = board.get_all_checkers_with_capture_moves(self_checkers)
+    enemy_captured = board.check_if_capture_moves_exists_and_assign_possible_moves(enemy_checkers)
+    self_captured = board.check_if_capture_moves_exists_and_assign_possible_moves(self_checkers)
 
     enemy_possible_moves = get_all_possible_moves(board, enemy_checkers)
     self_possible_moves = get_all_possible_moves(board, enemy_checkers)
@@ -128,31 +127,20 @@ def get_all_possible_moves(board, player_type) -> List[AIMove]:
     moves = []
 
     if board.current_checker is not None:
-        list_of_moves = board.calculate_avaible_moves(board.current_checker)
-
+        board.calculate_available_moves(board.current_checker)
+        list_of_moves = board.current_checker.get_list_of_moves()
         if len(list_of_moves) > 0:
-            moves += map(lambda move:
-                         AIMove(
-                             board.current_checker,
-                             (move[0], move[1]),
-                             board.capture_moves
-                         ),
-                         list_of_moves)
+            moves += map(lambda move: AIMove(board.current_checker, (move[0], move[1])), list_of_moves)
     else:
         from models.checker import Checker
         checkers: Dict[str, Checker] = board.orange_checkers if player_type is PlayerType.USER else board.blue_checkers
-        captured: List[str] = board.get_all_checkers_with_capture_moves(checkers)
+        captured: List[str] = board.check_if_capture_moves_exists_and_assign_possible_moves(checkers)
         for c in checkers.values():
             board.current_checker = c
-            list_of_moves = board.calculate_avaible_moves(c)
+            list_of_moves = board.current_checker.get_list_of_moves()
 
             if len(list_of_moves) > 0 and (len(captured) == 0 or c.id_tag in captured):
-                moves += map(lambda move:
-                             AIMove(
-                                 c,
-                                 (move[0], move[1]),
-                                 board.capture_moves),
-                             list_of_moves)
+                moves += map(lambda move: AIMove(c, (move[0], move[1])), list_of_moves)
         board.current_checker = None
 
     return moves
