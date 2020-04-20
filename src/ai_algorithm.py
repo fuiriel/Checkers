@@ -136,11 +136,9 @@ def get_all_possible_moves(board, player_type) -> List[AIMove]:
         checkers: Dict[str, Checker] = board.orange_checkers if player_type is PlayerType.USER else board.blue_checkers
         captured: List[str] = board.check_if_capture_moves_exists_and_assign_possible_moves(checkers)
         for c in checkers.values():
-            board.current_checker = c
-            list_of_moves = board.current_checker.get_list_of_moves()
+            list_of_moves = c.get_list_of_moves()
 
             if len(list_of_moves) > 0 and (len(captured) == 0 or c.id_tag in captured):
                 moves += map(lambda move: AIMove(c, (move[0], move[1])), list_of_moves)
-        board.current_checker = None
 
     return moves

@@ -161,17 +161,16 @@ class Board(tk.Canvas):
             tile.highlight()
 
     def calculate_available_moves(self, checker):
-        self.current_checker = checker
-        if self.current_checker is None:
+        if checker is None:
             return []
 
-        self.current_checker.capture_moves = []
-        self.current_checker.normal_moves = []
+        checker.capture_moves = []
+        checker.normal_moves = []
 
-        if self.current_checker.king:
-            self.calculate_king_moves()
+        if checker.king:
+            self.calculate_king_moves(checker)
         else:
-            self.calculate_checker_moves()
+            self.calculate_checker_moves(checker)
 
     def clear_highlighted_tiles(self):
         for tile in self.highlighted_tiles:
@@ -196,23 +195,20 @@ class Board(tk.Canvas):
                 self.master.get_user().reset_kings_moves_count()
                 self.master.get_computer().update_checkers_list(checker)
 
-    def calculate_checker_moves(self):
-        row = self.current_checker.row
-        col = self.current_checker.column
-
-        if self.current_checker.color == CheckerColor.ORANGE:
+    def calculate_checker_moves(self, checker):
+        if checker.color == CheckerColor.ORANGE:
             normal_dash = [[-1, -1], [-1, 1]]
         else:
             normal_dash = [[1, 1], [1, -1]]
 
         capture_dash = [[-2, -2], [-2, 2], [2, -2], [2, 2]]
         for dash in capture_dash:
-            if self.is_valid_move(row + dash[0], col + dash[1]):
-                self.current_checker.capture_moves.append([row + dash[0], col + dash[1]])
-        if len(self.current_checker.capture_moves) == 0:
+            if self.is_valid_move(checker.row + dash[0], checker.column + dash[1], checker):
+                checker.capture_moves.append([checker.row + dash[0], checker.column + dash[1]])
+        if len(checker.capture_moves) == 0:
             for dash in normal_dash:
-                if self.is_valid_move(row + dash[0], col + dash[1]):
-                    self.current_checker.normal_moves.append([row + dash[0], col + dash[1]])
+                if self.is_valid_move(checker.row + dash[0], checker.column + dash[1], checker):
+                    checker.normal_moves.append([checker.row + dash[0], checker.column + dash[1]])
 
     def find_and_remove_checker_after_capture(self, row, column, quite_move=False):
         if row > self.current_checker.row:
@@ -240,96 +236,92 @@ class Board(tk.Canvas):
             checkers = self.master.get_current_player().checkers
 
         captured = []
-        current_checker_cache = self.current_checker
         for c in checkers.values():
             if self.are_capture_moves_possible(c):
                 captured.append(c.id_tag)
-        self.current_checker = current_checker_cache
         return captured
 
     def are_capture_moves_possible(self, checker):
         self.calculate_available_moves(checker)
-        return len(self.current_checker.capture_moves) > 0
+        return len(checker.capture_moves) > 0
 
-    def is_valid_move(self, row, col):
+    def is_valid_move(self, row, col, current_checker):
         if 0 <= row < self.ROWS and 0 <= col < self.COLUMNS:
             checker = self.get_checker_object_from_row_col(row, col)
             # if we are checking for capture move make sure there is checker between
-            if abs(row - self.current_checker.row) == 2:
-                middle_row = (row + self.current_checker.row) / 2
-                middle_col = (col + self.current_checker.column) / 2
+            if abs(row - current_checker.row) == 2:
+                middle_row = (row + current_checker.row) / 2
+                middle_col = (col + current_checker.column) / 2
                 middle_checker = self.get_checker_object_from_row_col(middle_row, middle_col)
-                return checker is None and middle_checker and middle_checker.color is not self.current_checker.color
+                return checker is None and middle_checker and middle_checker.color is not current_checker.color
             return checker is None
         else:
             return False
 
-    def calculate_king_moves(self):
-        self.find_possible_king_moves(Movement.TOP_LEFT)
-        self.find_possible_king_moves(Movement.TOP_RIGHT)
-        self.find_possible_king_moves(Movement.BOTTOM_LEFT)
-        self.find_possible_king_moves(Movement.BOTTOM_RIGHT)
+    def calculate_king_moves(self, checker):
+        self.find_possible_king_moves(Movement.TOP_LEFT, checker)
+        self.find_possible_king_moves(Movement.TOP_RIGHT, checker)
+        self.find_possible_king_moves(Movement.BOTTOM_LEFT, checker)
+        self.find_possible_king_moves(Movement.BOTTOM_RIGHT, checker)
 
-    def find_possible_king_moves(self, movement):
-        row = self.current_checker.row
-        col = self.current_checker.column
+    def find_possible_king_moves(self, movement, checker):
         opposite_checkers_on_line = []
 
         if movement == Movement.BOTTOM_LEFT:
-            j = col
-            for i in range(row + 1, Board.ROWS):
+            j = checker.column
+            for i in range(checker.row + 1, Board.ROWS):
                 j -= 1
                 if j >= 0:
-                    if self.get_king_move(i, j, opposite_checkers_on_line) is not True:
+                    if self.get_king_move(i, j, opposite_checkers_on_line, checker) is not True:
                         break
                 else:
                     break
 
-        if movement == Movement.TOP_RIGHT:
-            j = row
-            for i in range(col + 1, Board.COLUMNS):
+        elif movement == Movement.TOP_RIGHT:
+            j = checker.row
+            for i in range(checker.column + 1, Board.COLUMNS):
                 j -= 1
                 if j >= 0:
-                    if self.get_king_move(j, i, opposite_checkers_on_line) is not True:
+                    if self.get_king_move(j, i, opposite_checkers_on_line, checker) is not True:
                         break
                 else:
                     break
 
-        if movement == Movement.BOTTOM_RIGHT:
-            j = row
-            for i in range(col + 1, Board.COLUMNS):
+        elif movement == Movement.BOTTOM_RIGHT:
+            j = checker.row
+            for i in range(checker.column + 1, Board.COLUMNS):
                 j += 1
                 if j < Board.ROWS:
-                    if self.get_king_move(j, i, opposite_checkers_on_line) is not True:
+                    if self.get_king_move(j, i, opposite_checkers_on_line, checker) is not True:
                         break
                 else:
                     break
 
-        if movement == Movement.TOP_LEFT:
-            j = col
-            for i in range(row - 1, -1, -1):
+        elif movement == Movement.TOP_LEFT:
+            j = checker.column
+            for i in range(checker.row - 1, -1, -1):
                 j -= 1
                 if j >= 0:
-                    if self.get_king_move(i, j, opposite_checkers_on_line) is not True:
+                    if self.get_king_move(i, j, opposite_checkers_on_line, checker) is not True:
                         break
                 else:
                     break
 
-    def get_king_move(self, row, col, opposite_checkers_on_line):
+    def get_king_move(self, row, col, opposite_checkers_on_line, checker):
         if 0 <= row < self.ROWS and 0 <= col < self.COLUMNS:
             if len(opposite_checkers_on_line) == 2:
                 return False
             validated_checker = self.get_checker_object_from_row_col(row, col)
             if validated_checker is not None:
-                if validated_checker.color is not self.current_checker.color:
+                if validated_checker.color is not checker.color:
                     opposite_checkers_on_line.append(1)
                 else:
                     return False
             else:
                 if len(opposite_checkers_on_line) > 0:
-                    self.current_checker.capture_moves.append([row, col])
+                    checker.capture_moves.append([row, col])
                 else:
-                    self.current_checker.normal_moves.append([row, col])
+                    checker.normal_moves.append([row, col])
         return True
 
     def unbind_all_tags(self):
