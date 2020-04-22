@@ -66,6 +66,8 @@ def min_max(board, depth, switched_player, alpha, beta):
         for move in possible_moves:
             temp_board = board.get_copy_of_board()
             move.perform(temp_board)
+            # przy braku multibicia zmieniamy uzytkownika, w przeciwnym wypadku analizujemy multibicia bez zwiekszania
+            # glebokosci
             if not temp_board.force_jump:
                 switched_player = PlayerType.USER
                 value = min_max(temp_board, depth + 1, switched_player, alpha, beta)
@@ -81,6 +83,8 @@ def min_max(board, depth, switched_player, alpha, beta):
         for move in possible_moves:
             temp_board = board.get_copy_of_board()
             move.perform(temp_board)
+            # przy braku multibicia zmieniamy uzytkownika, w przeciwnym wypadku analizujemy multibicia bez zwiekszania
+            # glebokosci
             if not temp_board.force_jump:
                 switched_player = PlayerType.COMPUTER
                 value = min_max(temp_board, depth + 1, switched_player, alpha, beta)
@@ -94,6 +98,9 @@ def min_max(board, depth, switched_player, alpha, beta):
     return best_value
 
 
+# funkcja obliczająca heurystyke. Dziala na zasadzie wzorca opisanego w dokumentacji projektu
+# Dla uproszczenia obliczen self_checkers jest albo uzytkownikiem albo komputerem w zalenosci, od tego, kogo jest
+# aktualnie tura. Tak samo dla enemy_checkers
 def calculate_heuristic(board, current_player):
     if current_player is PlayerType.COMPUTER:
         enemy_checkers = board.orange_checkers
