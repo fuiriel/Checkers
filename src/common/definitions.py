@@ -18,10 +18,6 @@ MAX_DEPTH = 3
 BG_COLOR = '#143363'
 
 
-def set_max_depth(max_depth):
-    MAX_DEPTH = max_depth
-
-
 class PlayerType(Enum):
     COMPUTER = 0
     USER = 1
@@ -51,5 +47,3 @@ W_JP = 1.3
 W_JE = 1.8
 # waga możliwych ruchów
 W_PM = 1
-
-

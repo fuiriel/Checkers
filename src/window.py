@@ -1,7 +1,8 @@
+import tkinter as tk
+
 from common.definitions import *
 from views.board import BoardView
 from views.start import StartView
-import tkinter as tk
 
 
 class CheckersApp(tk.Canvas):
