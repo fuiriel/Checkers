@@ -62,7 +62,7 @@ class Checker:
                 self.board.itemconfig(self.id_tag, width=5)
 
     def get_list_of_moves(self):
-        # must take capture moves if possible
+        # wymuszenie ruchów bijących, jeśli istnieją
         return self.capture_moves if len(self.capture_moves) > 0 else self.normal_moves
 
     def to_string(self):

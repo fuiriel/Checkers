@@ -73,6 +73,7 @@ class BoardView(View):
     def get_computer(self):
         return self.players[PlayerType.COMPUTER]
 
+    # kończy grę i wyświetla wynik końcowy
     def end_game(self):
         winner_label = 'Winner is {}!'
         if self.get_computer().checkers_count > self.get_user().checkers_count:
@@ -84,12 +85,13 @@ class BoardView(View):
         self.current_player_label['text'] = winner_label
         self.board.unbind_all_tags()
 
+    # sprawdza warunki zakończenia gry
     def is_end_of_game(self):
-        # one player has no checkers
+        # sprawdzenie, czy któryś z graczy nie posiada już pionków
         if self.get_computer().checkers_count == 0 or self.get_user().checkers_count == 0:
             return True
 
-        # next player has locked moves
+        # sprawdzanie, czy następny gracz może wykonać ruch
         copy = self.board.get_copy_of_board()
         copy.current_checker = None
         next_player = (self.current_player_type.value + 1) % 2
@@ -98,7 +100,7 @@ class BoardView(View):
             print('Jeden z graczy nie ma już możliwych ruchów do wykonania - koniec gry')
             return True
 
-        # all players have locked king's moves
+        # sprawdzenie, czy każdy z graczt wykonał po 15 ruchów damkami bez bić
         if self.get_computer().get_kings_moves_count() == 15 and self.get_user().get_kings_moves_count() == 15:
             print('Każdy gracz wykonał po 15 ruchów damkami bez bić - koniec gry')
             return True

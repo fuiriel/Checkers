@@ -15,6 +15,7 @@ class Movement(Enum):
     BOTTOM_LEFT = "bottom_left"
 
 
+# Model planszy
 class Board(tk.Canvas):
     WIDTH = 400
     HEIGHT = 400
@@ -171,6 +172,7 @@ class Board(tk.Canvas):
         checker.capture_moves = []
         checker.normal_moves = []
 
+        # w zaleznosci od rodzaju pionka przeprowadzamy kalkulacje albo dla damy albo dla zwyklego piona
         if checker.king:
             self.calculate_king_moves(checker)
         else:
@@ -200,17 +202,22 @@ class Board(tk.Canvas):
                 self.master.get_computer().update_checkers_list(checker)
 
     def calculate_checker_moves(self, checker):
+        # ta funkcja jest zawsze dla uzytkownika, wiec kolor zawsze bedzie orange
         if checker.color == CheckerColor.ORANGE:
             normal_dash = [[-1, -1], [-1, 1]]
         else:
             normal_dash = [[1, 1], [1, -1]]
 
+        # capture_dash to ruchy bijace, wiec pionek musi sie poruszyc o 2 pola na skos, zamiast o 1
         capture_dash = [[-2, -2], [-2, 2], [2, -2], [2, 2]]
         for dash in capture_dash:
+            # sprawdz czy współrzędne mieszczą się w granicach i na polu bijacym jest pionek,
+            # jesli tak to dodaj do mozliwych ruchow
             if self.is_valid_move(checker.row + dash[0], checker.column + dash[1], checker):
                 checker.capture_moves.append([checker.row + dash[0], checker.column + dash[1]])
         if len(checker.capture_moves) == 0:
             for dash in normal_dash:
+                # Podobnie jak dla bijacych, tylko tutaj nie sprawdzamy dodatkowo pola bijącego
                 if self.is_valid_move(checker.row + dash[0], checker.column + dash[1], checker):
                     checker.normal_moves.append([checker.row + dash[0], checker.column + dash[1]])
 
@@ -252,7 +259,7 @@ class Board(tk.Canvas):
     def is_valid_move(self, row, col, current_checker):
         if 0 <= row < self.ROWS and 0 <= col < self.COLUMNS:
             checker = self.get_checker_object_from_row_col(row, col)
-            # if we are checking for capture move make sure there is checker between
+            # Jezeli sprawdzamy ruchy bijace, to dodatkowo na bijacym polu musi znajdowac sie pionek przeciwnika
             if abs(row - current_checker.row) == 2:
                 middle_row = (row + current_checker.row) / 2
                 middle_col = (col + current_checker.column) / 2
@@ -271,6 +278,7 @@ class Board(tk.Canvas):
     def find_possible_king_moves(self, movement, checker):
         opposite_checkers_on_line = []
 
+        #sprawdzamy ruchy w kazda mozliwa strone w petli, poniewaz dama moze sie ruszyc o dowolna dlugosc po skosie
         if movement == Movement.BOTTOM_LEFT:
             j = checker.column
             for i in range(checker.row + 1, Board.ROWS):
@@ -313,6 +321,8 @@ class Board(tk.Canvas):
 
     def get_king_move(self, row, col, opposite_checkers_on_line, checker):
         if 0 <= row < self.ROWS and 0 <= col < self.COLUMNS:
+            # funkcja sprawdza czy ruch na dane pole jest mozliwy, jezeli tak to dodaje te wspolrzedne
+            # do skokow bijacych lub zwyklych, w zaleznosci czy pomiedzy tymi polami byl pionek przeciwnika
             if len(opposite_checkers_on_line) == 2:
                 return False
             validated_checker = self.get_checker_object_from_row_col(row, col)

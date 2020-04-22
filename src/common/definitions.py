@@ -13,7 +13,6 @@ light_red = '#f77e7e'
 cyan = 'cyan'
 beige = '#ffe6c9'
 
-EMPTY = 0
 MAX_DEPTH = 3
 BG_COLOR = '#143363'
 
